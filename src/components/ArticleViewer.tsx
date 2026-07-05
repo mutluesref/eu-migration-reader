@@ -388,3 +388,4 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     </div>
   );
 }
+
