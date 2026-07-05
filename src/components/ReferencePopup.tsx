@@ -36,14 +36,14 @@ function ReferencePopup({
 
   if (isTouchDevice) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
         <div
           ref={popupRef as React.RefObject<HTMLDivElement>}
-          className="relative w-full max-w-md bg-white dark:bg-surface-800 rounded-2xl shadow-xl border border-surface-200/60 dark:border-surface-700/60 overflow-hidden animate-slide-up"
+          className="relative w-full max-w-sm bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 overflow-hidden animate-scale-in"
         >
-          <div className="px-4 pt-4 pb-3 border-b border-surface-100 dark:border-surface-700/50">
-            <div className="flex items-center gap-2 mb-1">
+          <div className="px-5 pt-5 pb-4">
+            <div className="flex items-center gap-2 mb-2">
               <span className="text-xs text-brand-600 dark:text-brand-400 font-semibold uppercase tracking-wider">
                 {popup.docName}
               </span>
@@ -53,26 +53,24 @@ function ReferencePopup({
               </span>
             </div>
             {popup.subject && (
-              <p className="text-xs font-medium text-surface-500 dark:text-surface-400 italic truncate">
+              <p className="text-xs font-medium text-surface-500 dark:text-surface-400 italic mb-2 truncate">
                 {popup.subject}
               </p>
             )}
-          </div>
-          <div className="px-4 py-3 max-h-48 overflow-y-auto">
-            <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+            <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed line-clamp-6">
               {popup.content}
             </p>
           </div>
-          <div className="px-4 py-3 border-t border-surface-100 dark:border-surface-700/50 flex gap-2">
+          <div className="px-5 py-4 border-t border-surface-100 dark:border-surface-700/50 flex gap-3 bg-surface-50 dark:bg-surface-750">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700 rounded-xl hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors"
+              className="flex-1 px-4 py-3 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-200 dark:bg-surface-700 rounded-xl active:scale-95 transition-transform"
             >
               Close
             </button>
             <button
               onClick={onClickInspect}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-xl hover:bg-brand-700 transition-colors"
+              className="flex-1 px-4 py-3 text-sm font-medium text-white bg-brand-600 rounded-xl active:scale-95 transition-transform"
             >
               Open in inspector
             </button>
@@ -87,8 +85,6 @@ function ReferencePopup({
       <div
         className="fixed inset-0 z-40"
         onClick={onClose}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
       />
       <div
         ref={popupRef as React.RefObject<HTMLDivElement>}
