@@ -153,16 +153,6 @@ function lookupCelexRef(text: string): string | null {
   return null;
 }
 
-function findDocByKeyword(text: string): string | null {
-  const lower = text.toLowerCase();
-  for (const [id, keywords] of REGULATION_KEYWORDS) {
-    for (const kw of keywords) {
-      if (lower.includes(kw.toLowerCase())) return id;
-    }
-  }
-  return lookupCelexRef(text);
-}
-
 function findDocBySurroundingText(text: string, center: number, range: number = 200): string | null {
   const afterText = text.substring(center, Math.min(text.length, center + 120));
 
@@ -198,7 +188,7 @@ function findDocBySurroundingText(text: string, center: number, range: number = 
   return null;
 }
 
-function isExcluded(text: string, matchStart: number, matchEnd: number): boolean {
+function isExcluded(text: string, _matchStart: number, matchEnd: number): boolean {
   const after = text.substring(matchEnd, matchEnd + 200);
   for (const term of EXCLUDED_TERMS) {
     if (after.includes(term)) return true;

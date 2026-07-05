@@ -23,7 +23,7 @@ const DOC_ICONS: Record<string, string> = {
   eurodac: 'E', sr: 'S', qr: 'Q', rcd: 'D', urfa: 'R',
 };
 
-export default function Sidebar({ documents, currentDocId, currentArticleNumber, onNavigate, onClose }: Props) {
+export default function Sidebar({ documents, currentDocId, currentArticleNumber, onNavigate }: Props) {
   const [expandedDocs, setExpandedDocs] = useState<Set<string>>(new Set([currentDocId]));
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showBookmarks, setShowBookmarks] = useState(false);

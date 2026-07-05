@@ -115,8 +115,6 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     ? null
     : doc.articles.find(a => String(a.number) === articleNumber);
 
-  const subject = article?.subject ?? '';
-
   const bodyContent = useMemo(() => {
     if (!article) return '';
     const c = article.content;

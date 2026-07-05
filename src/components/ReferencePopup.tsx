@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { getRegulationNumber } from '../data/documents';
 
 export interface PopupInfo {
   x: number;

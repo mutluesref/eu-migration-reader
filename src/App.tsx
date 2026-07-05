@@ -114,7 +114,7 @@ export default function App() {
 
   const { isDark, setTheme: setThemeFn } = useTheme();
   const { showOnboarding, dismissOnboarding, stepIndex, nextStep, prevStep } = useOnboarding();
-  const { bookmarks, addBookmark, removeBookmark, isBookmarked } = useBookmarks();
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
