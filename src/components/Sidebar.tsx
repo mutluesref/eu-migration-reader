@@ -59,54 +59,54 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-100 dark:border-slate-700">
-        <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Documents</h2>
-        <span className="text-[10px] text-slate-300 dark:text-slate-600">{documents.length} regulations</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-surface-100 dark:border-surface-700/50">
+        <h2 className="text-[11px] font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider">Documents</h2>
+        <span className="text-[10px] text-surface-300 dark:text-surface-600 font-mono">{documents.length}</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar py-1.5 px-2">
+      <div className="flex-1 overflow-y-auto custom-scrollbar py-2 px-2.5">
         {/* Documents list */}
         {documents.map(doc => {
           const isExpanded = expandedDocs.has(doc.id);
           const isActive = doc.id === currentDocId;
 
           return (
-            <div key={doc.id} className="mb-0.5">
+            <div key={doc.id} className="mb-1">
               <div
-                className={`sidebar-item flex items-center gap-2 ${isActive ? 'sidebar-item-active' : ''}`}
+                className={`sidebar-item flex items-center gap-2.5 ${isActive ? 'sidebar-item-active' : ''}`}
                 onClick={() => toggleDoc(doc.id)}
               >
-                <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors ${isActive ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-sm' : 'bg-surface-100 dark:bg-surface-700 text-surface-500 dark:text-surface-400'}`}>
                   {DOC_ICONS[doc.id] || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium truncate">{getDocumentShortName(doc.id)}</span>
-                    <span
-                      className="text-[10px] text-slate-400 dark:text-slate-500 cursor-context-menu flex-shrink-0"
-                      title="Right-click to copy"
-                      onContextMenu={e => {
-                        e.preventDefault();
-                        copyRegNumber(doc.id, getRegulationNumber(doc.id));
-                      }}
-                    >
-                      {getRegulationNumber(doc.id)}
-                    </span>
+                    <span className="text-[13px] font-medium truncate text-surface-700 dark:text-surface-300">{getDocumentShortName(doc.id)}</span>
                   </div>
+                  <span
+                    className="text-[10px] text-surface-400 dark:text-surface-500 font-mono cursor-context-menu"
+                    title="Right-click to copy"
+                    onContextMenu={e => {
+                      e.preventDefault();
+                      copyRegNumber(doc.id, getRegulationNumber(doc.id));
+                    }}
+                  >
+                    {getRegulationNumber(doc.id)}
+                  </span>
                 </div>
                 <svg
-                  className={`w-3 h-3 text-slate-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
+                  className={`w-4 h-4 text-surface-400 transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
                   fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                 </svg>
                 {copiedId === doc.id && (
-                  <span className="text-[10px] text-emerald-600 font-medium flex-shrink-0">Copied!</span>
+                  <span className="text-[10px] text-accent-emerald font-medium flex-shrink-0 animate-fade-in">Copied!</span>
                 )}
               </div>
 
               {isExpanded && (
-                <div className="ml-3 border-l-2 border-slate-100 dark:border-slate-700 pl-2 mt-0.5 mb-1">
+                <div className="ml-4 border-l border-surface-200 dark:border-surface-700 pl-3 mt-1 mb-2">
                   {doc.recitals.length > 0 && (
                     <div
                       className={`article-list-item ${isActive && currentArticleNumber === 'recitals' ? 'article-list-item-active' : ''}`}
