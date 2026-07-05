@@ -157,9 +157,49 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   const mouseOverRef = useRef(false);
   const mouseOverPopup = useRef(false);
+  const currentRefEl = useRef<HTMLElement | null>(null);
+
+  const isMouseNearPopup = useCallback((e: MouseEvent) => {
+    if (!popupRef.current) return false;
+    const rect = popupRef.current.getBoundingClientRect();
+    const pad = 20;
+    return (
+      e.clientX >= rect.left - pad &&
+      e.clientX <= rect.right + pad &&
+      e.clientY >= rect.top - pad &&
+      e.clientY <= rect.bottom + pad
+    );
+  }, []);
+
+  const isMouseNearRef = useCallback((e: MouseEvent) => {
+    if (!currentRefEl.current) return false;
+    const rect = currentRefEl.current.getBoundingClientRect();
+    const pad = 20;
+    return (
+      e.clientX >= rect.left - pad &&
+      e.clientX <= rect.right + pad &&
+      e.clientY >= rect.top - pad &&
+      e.clientY <= rect.bottom + pad
+    );
+  }, []);
+
+  useEffect(() => {
+    if (isTouchDevice || !popup) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (isMouseNearRef(e) || isMouseNearPopup(e)) return;
+      timeoutRef.current = setTimeout(() => {
+        setPopup(null);
+        currentRefEl.current = null;
+      }, 400);
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, [isTouchDevice, popup, isMouseNearRef, isMouseNearPopup]);
 
   const handleMouseEnterRef = useCallback((ref: Reference, e: React.MouseEvent) => {
     if (isTouchDevice) return;
+    currentRefEl.current = e.target as HTMLElement;
     mouseOverRef.current = true;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -197,26 +237,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   const handleMouseLeaveRef = useCallback(() => {
     if (isTouchDevice) return;
     mouseOverRef.current = false;
-    timeoutRef.current = setTimeout(() => {
-      if (!mouseOverRef.current && !mouseOverPopup.current) {
-        setPopup(null);
-      }
-    }, 300);
   }, [isTouchDevice]);
-
-  const handlePopupMouseEnter = useCallback(() => {
-    mouseOverPopup.current = true;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  }, []);
-
-  const handlePopupMouseLeave = useCallback(() => {
-    mouseOverPopup.current = false;
-    timeoutRef.current = setTimeout(() => {
-      if (!mouseOverRef.current && !mouseOverPopup.current) {
-        setPopup(null);
-      }
-    }, 300);
-  }, []);
 
   const handleClickRef = useCallback((ref: Reference) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -391,11 +412,12 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         <ReferencePopup
           popup={popup}
           popupRef={popupRef}
-          onMouseEnter={handlePopupMouseEnter}
-          onMouseLeave={handlePopupMouseLeave}
+          onMouseEnter={() => { mouseOverPopup.current = true; if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
+          onMouseLeave={() => { mouseOverPopup.current = false; }}
           onClickInspect={handlePopupInspect}
           onClose={() => {
             setPopup(null);
+            currentRefEl.current = null;
             mouseOverRef.current = false;
             mouseOverPopup.current = false;
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
