@@ -64,74 +64,8 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
         <span className="text-[10px] text-slate-300 dark:text-slate-600">{documents.length} regulations</span>
       </div>
 
-      {/* Bookmarks section */}
-      {bookmarks.length > 0 && (
-        <div className="border-b border-slate-100 dark:border-slate-700">
-          <button
-            onClick={() => setShowBookmarks(!showBookmarks)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-          >
-            <span className="text-amber-500">★</span>
-            <span>Bookmarks</span>
-            <span className="ml-auto text-[10px] bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded-full">{bookmarks.length}</span>
-            <svg
-              className={`w-3 h-3 text-slate-400 transition-transform ${showBookmarks ? 'rotate-90' : ''}`}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-          {showBookmarks && (
-            <div className="px-2 pb-2">
-              {bookmarks.map((b: { docId: string; articleNumber: string; label: string }, i: number) => (
-                <div
-                  key={`${b.docId}-${b.articleNumber}-${i}`}
-                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 group cursor-pointer transition-colors"
-                  onClick={() => onNavigate(b.docId, b.articleNumber)}
-                >
-                  <span className="text-amber-400 text-xs">★</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] text-blue-600 dark:text-blue-400 font-medium truncate">{getDocName(b.docId)}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{getArticleTitle(b.docId, b.articleNumber)}</div>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); removeBookmark(b.docId, b.articleNumber); }}
-                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
-                    title="Remove bookmark"
-                  >
-                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Recent articles */}
-      {recentArticles.length > 0 && !showBookmarks && (
-        <div className="border-b border-slate-100 dark:border-slate-700 px-3 py-2">
-          <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Recent</div>
-          {recentArticles.slice(0, 5).map((r: { docId: string; articleNumber: string }, i: number) => (
-            <div
-              key={`${r.docId}-${r.articleNumber}-${i}`}
-              className="flex items-center gap-1.5 px-1 py-1 rounded hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
-              onClick={() => onNavigate(r.docId, r.articleNumber)}
-            >
-              <div className="w-4 h-4 rounded flex items-center justify-center text-[8px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex-shrink-0">
-                {DOC_ICONS[r.docId] || '?'}
-              </div>
-              <span className="text-[10px] text-slate-600 dark:text-slate-400 truncate">
-                {getArticleTitle(r.docId, r.articleNumber)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
       <div className="flex-1 overflow-y-auto custom-scrollbar py-1.5 px-2">
+        {/* Documents list */}
         {documents.map(doc => {
           const isExpanded = expandedDocs.has(doc.id);
           const isActive = doc.id === currentDocId;
@@ -187,6 +121,78 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
             </div>
           );
         })}
+
+        {/* Divider */}
+        {(bookmarks.length > 0 || recentArticles.length > 0) && (
+          <div className="my-2 border-t border-slate-100 dark:border-slate-700" />
+        )}
+
+        {/* Bookmarks section */}
+        {bookmarks.length > 0 && (
+          <div className="mb-1">
+            <button
+              onClick={() => setShowBookmarks(!showBookmarks)}
+              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors"
+            >
+              <span className="text-amber-500">★</span>
+              <span>Bookmarks</span>
+              <span className="ml-auto text-[10px] bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded-full">{bookmarks.length}</span>
+              <svg
+                className={`w-3 h-3 text-slate-400 transition-transform ${showBookmarks ? 'rotate-90' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            {showBookmarks && (
+              <div className="px-1 pb-1">
+                {bookmarks.map((b: { docId: string; articleNumber: string; label: string }, i: number) => (
+                  <div
+                    key={`${b.docId}-${b.articleNumber}-${i}`}
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 group cursor-pointer transition-colors"
+                    onClick={() => onNavigate(b.docId, b.articleNumber)}
+                  >
+                    <span className="text-amber-400 text-xs">★</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] text-blue-600 dark:text-blue-400 font-medium truncate">{getDocName(b.docId)}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{getArticleTitle(b.docId, b.articleNumber)}</div>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeBookmark(b.docId, b.articleNumber); }}
+                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
+                      title="Remove bookmark"
+                    >
+                      <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Recent articles - hidden when bookmarks is open */}
+        {recentArticles.length > 0 && !showBookmarks && (
+          <div>
+            <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1 px-2">Recent</div>
+            {recentArticles.slice(0, 5).map((r: { docId: string; articleNumber: string }, i: number) => (
+              <div
+                key={`${r.docId}-${r.articleNumber}-${i}`}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                onClick={() => onNavigate(r.docId, r.articleNumber)}
+              >
+                <div className="w-4 h-4 rounded flex items-center justify-center text-[8px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex-shrink-0">
+                  {DOC_ICONS[r.docId] || '?'}
+                </div>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 truncate">
+                  {getArticleTitle(r.docId, r.articleNumber)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
