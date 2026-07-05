@@ -208,7 +208,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
       setPopup({
         x: rect.left,
         y: rect.bottom + 12,
-        content: found.content.substring(0, 600) + (found.content.length > 600 ? '...' : ''),
+        content: found.content,
         docName: found.docName,
         articleTitle: found.title,
         subject: found.subject,
@@ -255,7 +255,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
       setPopup({
         x: rect?.left ?? 0,
         y: (rect?.bottom ?? 0) + 12,
-        content: found.content.substring(0, 600) + (found.content.length > 600 ? '...' : ''),
+        content: found.content,
         docName: found.docName,
         articleTitle: found.title,
         subject: found.subject,

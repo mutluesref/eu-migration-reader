@@ -22,6 +22,21 @@ interface Props {
   regulationNumber: string;
 }
 
+function splitIntoParagraphs(text: string): string[] {
+  const paragraphs: string[] = [];
+  const parts = text.split('\n\n');
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (trimmed) {
+      paragraphs.push(trimmed);
+    }
+  }
+  if (paragraphs.length === 0 && text.trim()) {
+    paragraphs.push(text.trim());
+  }
+  return paragraphs;
+}
+
 function ReferencePopup({
   popup,
   popupRef,
@@ -33,6 +48,7 @@ function ReferencePopup({
   regulationNumber,
 }: Props) {
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const paragraphs = splitIntoParagraphs(popup.content);
 
   if (isTouchDevice) {
     return (
@@ -42,13 +58,13 @@ function ReferencePopup({
           onClick={onClose}
           onTouchEnd={onClose}
         />
-        <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4">
           <div
             ref={popupRef as React.RefObject<HTMLDivElement>}
-            className="w-[calc(100%-3rem)] max-w-sm bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 overflow-hidden pointer-events-auto animate-scale-in"
+            className="w-full max-w-lg max-h-[80vh] bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 flex flex-col overflow-hidden pointer-events-auto animate-scale-in"
           >
-            <div className="px-5 pt-5 pb-4">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="px-5 pt-5 pb-3 border-b border-surface-100 dark:border-surface-700/50 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs text-brand-600 dark:text-brand-400 font-semibold uppercase tracking-wider">
                   {popup.docName}
                 </span>
@@ -58,15 +74,21 @@ function ReferencePopup({
                 </span>
               </div>
               {popup.subject && (
-                <p className="text-xs font-medium text-surface-500 dark:text-surface-400 italic mb-2 truncate">
+                <p className="text-xs font-medium text-surface-500 dark:text-surface-400 italic truncate">
                   {popup.subject}
                 </p>
               )}
-              <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed max-h-40 overflow-y-auto">
-                {popup.content}
-              </p>
             </div>
-            <div className="px-5 py-4 border-t border-surface-100 dark:border-surface-700/50 flex gap-3">
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-4">
+              <div className="space-y-3">
+                {paragraphs.map((p, i) => (
+                  <p key={i} className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            </div>
+            <div className="px-5 py-4 border-t border-surface-100 dark:border-surface-700/50 flex gap-3 flex-shrink-0">
               <button
                 onClick={onClose}
                 onTouchEnd={onClose}
@@ -123,8 +145,14 @@ function ReferencePopup({
             {popup.subject}
           </p>
         )}
-        <div className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
-          {popup.content}
+        <div className="max-h-64 overflow-y-auto custom-scrollbar">
+          <div className="space-y-2">
+            {paragraphs.map((p, i) => (
+              <p key={i} className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+                {p}
+              </p>
+            ))}
+          </div>
         </div>
         <div className="mt-2 pt-2 border-t border-surface-200/60 dark:border-surface-700/60">
           <p className="text-[10px] text-surface-400 dark:text-surface-500">
