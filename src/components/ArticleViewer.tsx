@@ -195,7 +195,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     if (isTouchDevice) return;
     timeoutRef.current = setTimeout(() => {
       setPopup(null);
-    }, 250);
+    }, 500);
   }, [isTouchDevice]);
 
   const handleClickRef = useCallback((ref: Reference) => {
