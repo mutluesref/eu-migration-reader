@@ -374,6 +374,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
           onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
           onMouseLeave={handleMouseLeaveRef}
           onClickInspect={handlePopupInspect}
+          onClose={() => { setPopup(null); if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
           copyRegNum={copyRegNum}
           regulationNumber={getRegulationNumber(doc.id)}
         />
