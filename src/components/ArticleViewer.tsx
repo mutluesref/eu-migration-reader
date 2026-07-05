@@ -163,7 +163,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     if (found) {
       setPopup({
         x: rect.left,
-        y: rect.bottom + 6,
+        y: rect.bottom + 12,
         content: found.content.substring(0, 600) + (found.content.length > 600 ? '...' : ''),
         docName: found.docName,
         articleTitle: found.title,
@@ -177,7 +177,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         : getDocumentShortName(ref.documentId);
       setPopup({
         x: rect.left,
-        y: rect.bottom + 6,
+        y: rect.bottom + 12,
         content: celex ? `External reference — ${docName}` : `Article ${ref.articleNumber}`,
         docName,
         articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
@@ -209,12 +209,13 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     onReferenceNavigate(ref.documentId, ref.articleNumber);
   }, [onReferenceNavigate]);
 
-  // Adjust popup position to stay in viewport
+  // Adjust popup position to stay in viewport, keeping a safe gap from the link
   useEffect(() => {
     if (popup && popupRef.current) {
       const rect = popupRef.current.getBoundingClientRect();
       const viewportW = window.innerWidth;
       const viewportH = window.innerHeight;
+      const gap = 12;
       let left = popup.x;
       let top = popup.y;
       if (rect.right > viewportW - 10) {
@@ -222,7 +223,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
       }
       if (left < 10) left = 10;
       if (rect.bottom > viewportH - 10) {
-        top = popup.y - rect.height - 8;
+        top = popup.y - rect.height - gap * 2;
       }
       if (top < 10) top = 10;
       popupRef.current.style.left = `${left}px`;

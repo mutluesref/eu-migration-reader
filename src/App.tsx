@@ -73,6 +73,7 @@ export default function App() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
   const [showInspector, setShowInspector] = useState(false);
   const articleScrollRef = useRef<HTMLDivElement>(null);
@@ -167,9 +168,9 @@ export default function App() {
   }, [navigateTo]);
 
   const handleSearchResultClick = useCallback((docId: string, articleNumber: string) => {
-    navigateTo(docId, articleNumber);
-    setShowSearch(false);
-  }, [navigateTo]);
+    setInspectedRef({ documentId: docId, articleNumber });
+    setShowInspector(true);
+  }, []);
 
   useEffect(() => {
     if (articleScrollRef.current) {
@@ -216,12 +217,12 @@ export default function App() {
               EU Pact on Migration and Asylum Reader
             </h1>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
             <button
               onClick={goBack}
               disabled={historyIndex <= 0}
-              className="btn-icon disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-              title="Back"
+              className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-slate-700 disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
+              title={historyIndex > 0 ? `Back to ${history[historyIndex - 1]?.articleNumber === 'recitals' ? 'Recitals' : `Article ${history[historyIndex - 1]?.articleNumber}`}` : 'Back'}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -230,14 +231,14 @@ export default function App() {
             <button
               onClick={goForward}
               disabled={historyIndex >= history.length - 1}
-              className="btn-icon disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-              title="Forward"
+              className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-slate-700 disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
+              title={historyIndex < history.length - 1 ? `Forward to ${history[historyIndex + 1]?.articleNumber === 'recitals' ? 'Recitals' : `Article ${history[historyIndex + 1]?.articleNumber}`}` : 'Forward'}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-            <div className="w-px h-5 bg-slate-200 mx-1" />
+            <div className="w-px h-4 bg-slate-300 mx-0.5" />
             <button
               onClick={() => setShowSearch(!showSearch)}
               className={`btn-icon ${showSearch ? 'btn-icon-active' : ''}`}
@@ -266,6 +267,8 @@ export default function App() {
       {showSearch && (
         <SearchPanel
           documents={documents}
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
           onResultClick={handleSearchResultClick}
           onClose={() => setShowSearch(false)}
         />

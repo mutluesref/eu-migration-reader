@@ -4,6 +4,8 @@ import { searchDocuments, type SearchResult } from '../utils/search';
 
 interface Props {
   documents: DocumentData[];
+  query: string;
+  onQueryChange: (q: string) => void;
   onResultClick: (docId: string, articleNumber: string) => void;
   onClose: () => void;
 }
@@ -32,8 +34,7 @@ const DOC_COLORS: Record<string, string> = {
   urfa: 'bg-teal-100 text-teal-700',
 };
 
-export default function SearchPanel({ documents, onResultClick, onClose }: Props) {
-  const [query, setQuery] = useState('');
+export default function SearchPanel({ documents, query, onQueryChange, onResultClick, onClose }: Props) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,14 +79,14 @@ export default function SearchPanel({ documents, onResultClick, onClose }: Props
             ref={inputRef}
             type="text"
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => onQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search articles by number or keyword..."
             className="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-400 transition-shadow"
           />
           {query && (
             <button
-              onClick={() => setQuery('')}
+              onClick={() => onQueryChange('')}
               className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
               title="Clear search"
             >
