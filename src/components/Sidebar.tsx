@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { DocumentData } from '../types';
-import { getRegulationNumber } from '../data/documents';
+import { getDocumentShortName, getRegulationNumber } from '../data/documents';
 
 interface Props {
   documents: DocumentData[];
@@ -17,15 +17,8 @@ function formatArticleLabel(articleTitle: string, subject: string): string {
 }
 
 const DOC_ICONS: Record<string, string> = {
-  ammr: 'A',
-  apr: 'P',
-  rbpr: 'B',
-  cfmr: 'C',
-  eurodac: 'E',
-  sr: 'S',
-  qr: 'Q',
-  rcd: 'D',
-  urfa: 'R',
+  ammr: 'A', apr: 'P', rbpr: 'B', cfmr: 'C',
+  eurodac: 'E', sr: 'S', qr: 'Q', rcd: 'D', urfa: 'R',
 };
 
 export default function Sidebar({ documents, currentDocId, currentArticleNumber, onNavigate, onClose }: Props) {
@@ -70,7 +63,7 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium truncate">{doc.shortName}</span>
+                    <span className="text-xs font-medium truncate">{getDocumentShortName(doc.id)}</span>
                     <span
                       className="text-[10px] text-slate-400 cursor-context-menu flex-shrink-0"
                       title="Right-click to copy"
@@ -104,23 +97,7 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
                       Recitals
                     </div>
                   )}
-                  {doc.articles.map(article => {
-                    const label = formatArticleLabel(article.title, article.subject);
-                    const isActiveArt = isActive && String(article.number) === currentArticleNumber;
-                    return (
-                      <div
-                        key={String(article.number)}
-                        className={`article-list-item flex items-center gap-1.5 ${isActiveArt ? 'article-list-item-active' : ''}`}
-                        onClick={() => onNavigate(doc.id, String(article.number))}
-                        title={label}
-                      >
-                        {isActiveArt && <span className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0 active-dot" />}
-                        <span className="truncate">
-                          {label.length > 50 ? label.substring(0, 47) + '...' : label}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {renderArticleList(doc, isActive, currentArticleNumber, onNavigate)}
                 </div>
               )}
             </div>
@@ -129,4 +106,34 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
       </div>
     </div>
   );
+}
+
+function renderArticleList(
+  doc: DocumentData,
+  isActive: boolean,
+  currentArticleNumber: string,
+  onNavigate: (docId: string, articleNumber: string) => void,
+) {
+  const items: React.ReactNode[] = [];
+
+  for (const article of doc.articles) {
+    const artNum = String(article.number);
+    const label = formatArticleLabel(article.title, article.subject);
+    const isActiveArt = isActive && artNum === currentArticleNumber;
+    items.push(
+      <div
+        key={artNum}
+        className={`article-list-item flex items-center gap-1.5 ${isActiveArt ? 'article-list-item-active' : ''}`}
+        onClick={() => onNavigate(doc.id, artNum)}
+        title={label}
+      >
+        {isActiveArt && <span className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0 active-dot" />}
+        <span className="truncate">
+          {label.length > 50 ? label.substring(0, 47) + '...' : label}
+        </span>
+      </div>
+    );
+  }
+
+  return items;
 }

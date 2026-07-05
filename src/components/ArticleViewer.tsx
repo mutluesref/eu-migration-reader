@@ -248,8 +248,8 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   // Render recitals view
   if (articleNumber === 'recitals') {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="card p-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        <div className="card p-4 sm:p-6">
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
@@ -262,7 +262,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
           </div>
           <div className="space-y-4">
             {doc.recitals.map(recital => (
-              <div key={recital.number} className="text-sm leading-relaxed text-slate-600 pl-6 border-l-2 border-slate-100">
+              <div key={recital.number} className="text-sm leading-relaxed text-slate-600 pl-6 border-l-2 border-slate-100 relative">
                 <span className="font-semibold text-slate-400 absolute -ml-6">({recital.number})</span>
                 {recital.text}
               </div>
@@ -274,12 +274,12 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       {/* Article card */}
-      <div className="card overflow-hidden">
+      <div className="card">
         {/* Sticky article header */}
-        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100">
-          <div className="px-6 pt-6 pb-4">
+        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 rounded-t-xl">
+          <div className="px-4 sm:px-6 pt-6 pb-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
               <span
@@ -294,6 +294,23 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
               </span>
               {copiedReg && <span className="text-[10px] text-emerald-600 font-medium">Copied!</span>}
             </div>
+            <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+              {article?.part && (
+                <span className="font-medium text-slate-500">{article.part.replace(/^(\w+):\s*/, 'Part $1 — ')}</span>
+              )}
+              {article?.chapter && (
+                <>
+                  <span className="text-slate-300">|</span>
+                  <span className="font-medium text-slate-500">{article.chapter.replace(/^(\w+):\s*/, 'Chapter $1 — ')}</span>
+                </>
+              )}
+              {article?.section && (
+                <>
+                  <span className="text-slate-300">|</span>
+                  <span className="font-medium text-slate-500">{article.section.replace(/^(\w+):\s*/, 'Section $1 — ')}</span>
+                </>
+              )}
+            </div>
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{article!.title}</h2>
             {subject && (
               <p className="text-sm font-medium text-slate-500 mt-1 italic">{subject}</p>
@@ -302,7 +319,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         </div>
 
         {/* Article body */}
-        <div key={articleNumber} className="article-enter px-6 pb-6 pt-4">
+        <div key={articleNumber} className="article-enter px-4 sm:px-6 pb-6 pt-4">
           <div className="article-text">
             {paragraphSegments.map((para, pi) => (
               <p key={pi} className="mb-3" style={{ paddingLeft: `${indentLevels[pi] * 24}px` }}>

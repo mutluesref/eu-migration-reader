@@ -3,6 +3,9 @@ export interface Article {
   title: string;
   subject: string;
   content: string;
+  part?: string | null;
+  chapter?: string | null;
+  section?: string | null;
 }
 
 export interface DocumentData {
@@ -34,4 +37,11 @@ export interface Reference {
 export interface HistoryEntry {
   documentId: string;
   articleNumber: string;
+}
+
+export interface StructureEntry {
+  type: 'part' | 'chapter' | 'section';
+  label: string;
+  num: string;
+  firstArticle: string;
 }

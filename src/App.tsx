@@ -296,38 +296,43 @@ export default function App() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         {showSidebar && (
-          <div
-            className="border-r border-slate-200 bg-white flex-shrink-0 overflow-hidden flex flex-col relative sidebar-enter"
-            style={{ width: sidebarWidth }}
-          >
-            <Sidebar
-              documents={documents}
-              currentDocId={currentDocId}
-              currentArticleNumber={currentArticleNumber}
-              onNavigate={navigateTo}
-              onClose={() => setShowSidebar(false)}
-            />
+          <>
+            {/* Mobile backdrop */}
+            <div className="fixed inset-0 bg-black/20 z-30 md:hidden" onClick={() => setShowSidebar(false)} />
             <div
-              className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400/30 active:bg-blue-400/50 transition-colors"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                sidebarResizing.current = true;
-                const startX = e.clientX;
-                const startW = sidebarWidth;
-                const onMove = (ev: MouseEvent) => {
-                  const newW = Math.max(200, Math.min(500, startW + ev.clientX - startX));
-                  setSidebarWidth(newW);
-                };
-                const onUp = () => {
-                  sidebarResizing.current = false;
-                  document.removeEventListener('mousemove', onMove);
-                  document.removeEventListener('mouseup', onUp);
-                };
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
-              }}
-            />
-          </div>
+              className={`flex flex-col overflow-hidden sidebar-enter fixed inset-y-0 left-0 z-40 bg-white shadow-xl md:relative md:z-auto md:shadow-none md:border-r md:border-slate-200`}
+            >
+              <div className="flex-1 flex flex-col overflow-hidden" style={{ width: sidebarWidth, minWidth: sidebarWidth }}>
+                <Sidebar
+                  documents={documents}
+                  currentDocId={currentDocId}
+                  currentArticleNumber={currentArticleNumber}
+                  onNavigate={navigateTo}
+                  onClose={() => setShowSidebar(false)}
+                />
+              </div>
+              <div
+                className="hidden md:block absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-400/30 active:bg-blue-400/50 transition-colors"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  sidebarResizing.current = true;
+                  const startX = e.clientX;
+                  const startW = sidebarWidth;
+                  const onMove = (ev: MouseEvent) => {
+                    const newW = Math.max(200, Math.min(500, startW + ev.clientX - startX));
+                    setSidebarWidth(newW);
+                  };
+                  const onUp = () => {
+                    sidebarResizing.current = false;
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                  };
+                  document.addEventListener('mousemove', onMove);
+                  document.addEventListener('mouseup', onUp);
+                }}
+              />
+            </div>
+          </>
         )}
 
         {/* Article content */}
@@ -346,26 +351,30 @@ export default function App() {
 
           {/* Reference inspector */}
           {showInspector && inspectedRef && (
-            <div className="w-96 border-l border-slate-200 bg-white overflow-y-auto custom-scrollbar panel-transition flex-shrink-0">
-              {inspectedDoc && inspectedArticle ? (
-                <ReferenceInspector
-                  document={inspectedDoc}
-                  article={inspectedArticle}
-                  onClose={() => { setShowInspector(false); setInspectedRef(null); }}
-                  onNavigate={handleReferenceNavigate}
-                />
-              ) : isExternalDoc(inspectedRef.documentId) ? (
-                <ExternalReferencePanel
-                  docId={inspectedRef.documentId}
-                  articleNumber={inspectedRef.articleNumber}
-                  onClose={() => { setShowInspector(false); setInspectedRef(null); }}
-                />
-              ) : (
-                <div className="p-8 text-center text-sm text-slate-400">
-                  Article not found in this document.
-                </div>
-              )}
-            </div>
+            <>
+              {/* Mobile backdrop */}
+              <div className="fixed inset-0 bg-black/20 z-30 md:hidden" onClick={() => { setShowInspector(false); setInspectedRef(null); }} />
+              <div className={`flex flex-col panel-transition fixed inset-y-0 right-0 z-40 bg-white shadow-xl w-96 max-w-[92vw] md:static md:z-auto md:shadow-none md:border-l md:border-slate-200 md:flex-shrink-0 overflow-hidden`}>
+                {inspectedDoc && inspectedArticle ? (
+                  <ReferenceInspector
+                    document={inspectedDoc}
+                    article={inspectedArticle}
+                    onClose={() => { setShowInspector(false); setInspectedRef(null); }}
+                    onNavigate={handleReferenceNavigate}
+                  />
+                ) : isExternalDoc(inspectedRef.documentId) ? (
+                  <ExternalReferencePanel
+                    docId={inspectedRef.documentId}
+                    articleNumber={inspectedRef.articleNumber}
+                    onClose={() => { setShowInspector(false); setInspectedRef(null); }}
+                  />
+                ) : (
+                  <div className="p-8 text-center text-sm text-slate-400">
+                    Article not found in this document.
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>

@@ -87,6 +87,13 @@
   line-height: 1.5;
 }
 
+@media (max-width: 640px) {
+  .reference-popup {
+    max-width: calc(100vw - 24px);
+    max-height: 40vh;
+  }
+}
+
 /* Panel slide-in */
 .panel-transition {
   transition: width 0.2s ease, opacity 0.2s ease;
