@@ -166,6 +166,8 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         docName: found.docName,
         articleTitle: found.title,
         subject: found.subject,
+        refDocId: ref.documentId,
+        refArticleNumber: ref.articleNumber,
       });
     } else {
       const celex = isExternalDoc(ref.documentId) ? getExternalCelex(ref.documentId) : '';
@@ -180,6 +182,8 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         docName,
         articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
         subject: '',
+        refDocId: ref.documentId,
+        refArticleNumber: ref.articleNumber,
       });
     }
   }, [findArticleContent]);
@@ -191,11 +195,46 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   }, []);
 
   const handleClickRef = useCallback((ref: Reference) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    const rect = document.querySelector(`[data-ref="${ref.documentId}:${ref.articleNumber}"]`)?.getBoundingClientRect();
+    let found = !isExternalDoc(ref.documentId) ? findArticleContent(ref.documentId, ref.articleNumber) : null;
+    if (found) {
+      setPopup({
+        x: rect?.left ?? 0,
+        y: (rect?.bottom ?? 0) + 12,
+        content: found.content.substring(0, 600) + (found.content.length > 600 ? '...' : ''),
+        docName: found.docName,
+        articleTitle: found.title,
+        subject: found.subject,
+        refDocId: ref.documentId,
+        refArticleNumber: ref.articleNumber,
+      });
+    } else {
+      const celex = isExternalDoc(ref.documentId) ? getExternalCelex(ref.documentId) : '';
+      const extName = celex ? getExternalName(celex) : undefined;
+      const docName = extName
+        ? `${extName} (${celex.substring(1, 5)}/${parseInt(celex.substring(6))})`
+        : getDocumentShortName(ref.documentId);
+      setPopup({
+        x: rect?.left ?? 0,
+        y: (rect?.bottom ?? 0) + 12,
+        content: celex ? `External reference — ${docName}` : `Article ${ref.articleNumber}`,
+        docName,
+        articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
+        subject: '',
+        refDocId: ref.documentId,
+        refArticleNumber: ref.articleNumber,
+      });
+    }
+  }, [findArticleContent]);
+
+  const handlePopupInspect = useCallback(() => {
+    if (!popup) return;
     setPopup(null);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setActiveRefs(prev => new Set(prev).add(`${ref.documentId}:${ref.articleNumber}`));
-    onReferenceClick(ref.documentId, ref.articleNumber);
-  }, [onReferenceClick]);
+    setActiveRefs(prev => new Set(prev).add(`${popup.refDocId}:${popup.refArticleNumber}`));
+    onReferenceClick(popup.refDocId, popup.refArticleNumber);
+  }, [popup, onReferenceClick]);
 
   const handleDoubleClickRef = useCallback((ref: Reference) => {
     setPopup(null);
@@ -285,12 +324,13 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
                   return (
                     <span
                       key={si}
+                      data-ref={`${ref.documentId}:${ref.articleNumber}`}
                       className={`reference-link ${isActive ? 'reference-link-active' : ''}`}
                       onMouseEnter={e => handleMouseEnterRef(ref, e)}
                       onMouseLeave={handleMouseLeaveRef}
                       onClick={() => handleClickRef(ref)}
                       onDoubleClick={() => handleDoubleClickRef(ref)}
-                      title={`${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}. Click to inspect. Double-click to navigate.`}
+                      title={`${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}. Tap to inspect. Double-tap to navigate.`}
                     >
                       {seg.text}
                     </span>
@@ -321,6 +361,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
           popupRef={popupRef}
           onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
           onMouseLeave={handleMouseLeaveRef}
+          onClickInspect={handlePopupInspect}
           copyRegNum={copyRegNum}
           regulationNumber={getRegulationNumber(doc.id)}
         />
