@@ -154,7 +154,10 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     return { content: clean, title: a.title, subject: a.subject, docName: d.shortName };
   }, [allDocs]);
 
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
   const handleMouseEnterRef = useCallback((ref: Reference, e: React.MouseEvent) => {
+    if (isTouchDevice) return;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     let found = !isExternalDoc(ref.documentId) ? findArticleContent(ref.documentId, ref.articleNumber) : null;
@@ -186,16 +189,25 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         refArticleNumber: ref.articleNumber,
       });
     }
-  }, [findArticleContent]);
+  }, [findArticleContent, isTouchDevice]);
 
   const handleMouseLeaveRef = useCallback(() => {
+    if (isTouchDevice) return;
     timeoutRef.current = setTimeout(() => {
       setPopup(null);
     }, 250);
-  }, []);
+  }, [isTouchDevice]);
 
   const handleClickRef = useCallback((ref: Reference) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    if (!isTouchDevice) {
+      setPopup(null);
+      setActiveRefs(prev => new Set(prev).add(`${ref.documentId}:${ref.articleNumber}`));
+      onReferenceClick(ref.documentId, ref.articleNumber);
+      return;
+    }
+
     const rect = document.querySelector(`[data-ref="${ref.documentId}:${ref.articleNumber}"]`)?.getBoundingClientRect();
     let found = !isExternalDoc(ref.documentId) ? findArticleContent(ref.documentId, ref.articleNumber) : null;
     if (found) {
@@ -226,7 +238,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         refArticleNumber: ref.articleNumber,
       });
     }
-  }, [findArticleContent]);
+  }, [findArticleContent, isTouchDevice, onReferenceClick]);
 
   const handlePopupInspect = useCallback(() => {
     if (!popup) return;
