@@ -191,11 +191,15 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   }, []);
 
   const handleClickRef = useCallback((ref: Reference) => {
+    setPopup(null);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setActiveRefs(prev => new Set(prev).add(`${ref.documentId}:${ref.articleNumber}`));
     onReferenceClick(ref.documentId, ref.articleNumber);
   }, [onReferenceClick]);
 
   const handleDoubleClickRef = useCallback((ref: Reference) => {
+    setPopup(null);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (isExternalDoc(ref.documentId)) {
       const url = getEurlexUrl(getExternalCelex(ref.documentId));
       const win = window.open(url, '_blank', 'noopener,noreferrer');
