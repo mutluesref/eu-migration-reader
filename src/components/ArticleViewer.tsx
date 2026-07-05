@@ -2,6 +2,12 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import type { DocumentData, Reference } from '../types';
 import { detectReferences, createReference, isExternalDoc, getExternalCelex, getExternalName, getEurlexUrl } from '../utils/referenceDetection';
 import { getDocumentShortName, getRegulationNumber } from '../data/documents';
+import { useStore } from '../store';
+import useBookmarks from '../hooks/useBookmarks';
+import ArticleHeader from './ArticleHeader';
+import RecitalView from './RecitalView';
+import ReferencePopup from './ReferencePopup';
+import type { PopupInfo } from './ReferencePopup';
 
 interface Props {
   document: DocumentData;
@@ -9,15 +15,6 @@ interface Props {
   documents: DocumentData[];
   onReferenceClick: (docId: string, articleNumber: string) => void;
   onReferenceNavigate: (docId: string, articleNumber: string) => void;
-}
-
-interface PopupInfo {
-  x: number;
-  y: number;
-  content: string;
-  docName: string;
-  articleTitle: string;
-  subject: string;
 }
 
 type Segment = { type: 'text'; text: string } | { type: 'ref'; text: string; ref: Reference };
@@ -99,17 +96,20 @@ function getRefShortName(docId: string): string {
 }
 
 export default function ArticleViewer({ document: doc, articleNumber, documents: allDocs, onReferenceClick, onReferenceNavigate }: Props) {
+  const fontSize = useStore((s) => s.fontSize);
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
+
   const [popup, setPopup] = useState<PopupInfo | null>(null);
   const [activeRefs, setActiveRefs] = useState<Set<string>>(new Set());
   const popupRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const [copiedReg, setCopiedReg] = useState(false);
 
-  const copyRegNum = (text: string) => {
+  const copyRegNum = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedReg(true);
     setTimeout(() => setCopiedReg(false), 1500);
-  };
+  }, []);
 
   const article = articleNumber === 'recitals'
     ? null
@@ -209,7 +209,15 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     onReferenceNavigate(ref.documentId, ref.articleNumber);
   }, [onReferenceNavigate]);
 
-  // Adjust popup position to stay in viewport, keeping a safe gap from the link
+  const handleToggleBookmark = useCallback(() => {
+    if (!article) return;
+    if (isBookmarked(doc.id, String(article.number))) {
+      removeBookmark(doc.id, String(article.number));
+    } else {
+      addBookmark(doc.id, String(article.number), article.title);
+    }
+  }, [article, doc.id, isBookmarked, addBookmark, removeBookmark]);
+
   useEffect(() => {
     if (popup && popupRef.current) {
       const rect = popupRef.current.getBoundingClientRect();
@@ -239,88 +247,30 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
 
   if (!article && articleNumber !== 'recitals') {
     return (
-      <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+      <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-sm">
         Article not found
       </div>
     );
   }
 
-  // Render recitals view
   if (articleNumber === 'recitals') {
-    return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        <div className="card p-4 sm:p-6">
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
-              <span className="text-[10px] text-slate-400">{getRegulationNumber(doc.id)}</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-800">Recitals</h2>
-            <p className="text-xs text-slate-400 mt-1">
-              {doc.recitals.length} recitals
-            </p>
-          </div>
-          <div className="space-y-4">
-            {doc.recitals.map(recital => (
-              <div key={recital.number} className="text-sm leading-relaxed text-slate-600 pl-6 border-l-2 border-slate-100 relative">
-                <span className="font-semibold text-slate-400 absolute -ml-6">({recital.number})</span>
-                {recital.text}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <RecitalView doc={doc} />;
   }
+
+  const bookmarked = isBookmarked(doc.id, String(article!.number));
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      {/* Article card */}
-      <div className="card">
-        {/* Sticky article header */}
-        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 rounded-t-xl">
-          <div className="px-4 sm:px-6 pt-6 pb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
-              <span
-                className="text-[10px] text-slate-400 cursor-context-menu"
-                title="Right-click to copy"
-                onContextMenu={e => {
-                  e.preventDefault();
-                  copyRegNum(getRegulationNumber(doc.id));
-                }}
-              >
-                {getRegulationNumber(doc.id)}
-              </span>
-              {copiedReg && <span className="text-[10px] text-emerald-600 font-medium">Copied!</span>}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
-              {article?.part && (
-                <span className="font-medium text-slate-500">{article.part.replace(/^(\w+):\s*/, 'Part $1 — ')}</span>
-              )}
-              {article?.chapter && (
-                <>
-                  <span className="text-slate-300">|</span>
-                  <span className="font-medium text-slate-500">{article.chapter.replace(/^(\w+):\s*/, 'Chapter $1 — ')}</span>
-                </>
-              )}
-              {article?.section && (
-                <>
-                  <span className="text-slate-300">|</span>
-                  <span className="font-medium text-slate-500">{article.section.replace(/^(\w+):\s*/, 'Section $1 — ')}</span>
-                </>
-              )}
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{article!.title}</h2>
-            {subject && (
-              <p className="text-sm font-medium text-slate-500 mt-1 italic">{subject}</p>
-            )}
-          </div>
-        </div>
+      <div className="card dark:bg-slate-800">
+        <ArticleHeader
+          doc={doc}
+          article={article!}
+          copiedReg={copiedReg}
+          onCopyReg={copyRegNum}
+        />
 
-        {/* Article body */}
         <div key={articleNumber} className="article-enter px-4 sm:px-6 pb-6 pt-4">
-          <div className="article-text">
+          <div className="article-text dark:text-slate-300" style={{ fontSize: `${fontSize}px` }}>
             {paragraphSegments.map((para, pi) => (
               <p key={pi} className="mb-3" style={{ paddingLeft: `${indentLevels[pi] * 24}px` }}>
                 {para.segments.map((seg, si) => {
@@ -348,44 +298,31 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
             ))}
           </div>
 
-          <div className="mt-8 pt-4 border-t border-slate-100">
-            <p className="text-xs text-slate-400">
+          <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
               <span className="font-medium">Tip:</span> Click a reference to inspect it in the side panel. Double-click to navigate directly.
             </p>
+            <button
+              onClick={handleToggleBookmark}
+              className="text-sm px-3 py-1.5 rounded-lg transition-colors dark:text-slate-400 dark:hover:bg-slate-700"
+              title={bookmarked ? 'Remove bookmark' : 'Bookmark this article'}
+            >
+              {bookmarked ? '★' : '☆'}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Reference popup */}
       {popup && (
-        <div
-          ref={popupRef}
-          className="reference-popup"
-          style={{ position: 'fixed', left: popup.x, top: popup.y }}
+        <ReferencePopup
+          popup={popup}
+          popupRef={popupRef}
           onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
           onMouseLeave={handleMouseLeaveRef}
-        >
-          <div className="flex items-center gap-2 mb-1.5 pb-1.5 border-b border-slate-100">
-            <span
-              className="text-xs text-blue-600 font-semibold uppercase tracking-wider truncate cursor-context-menu"
-              title="Right-click to copy"
-              onContextMenu={e => {
-                e.preventDefault();
-                copyRegNum(getRegulationNumber(doc.id));
-              }}
-            >{popup.docName}</span>
-            <span className="text-xs text-slate-300">|</span>
-            <span className="text-xs font-medium text-slate-700 truncate">{popup.articleTitle}</span>
-          </div>
-          {popup.subject && (
-            <p className="text-xs font-medium text-slate-500 italic mb-1.5 truncate">{popup.subject}</p>
-          )}
-          <div className="text-sm text-slate-600 leading-relaxed">
-            {popup.content}
-          </div>
-        </div>
+          copyRegNum={copyRegNum}
+          regulationNumber={getRegulationNumber(doc.id)}
+        />
       )}
     </div>
   );
 }
-
