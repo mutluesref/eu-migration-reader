@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { DocumentData, HistoryEntry } from './types';
 import { getDocumentIndex, getAllDocuments, getRegulationNumber } from './data/documents';
 import { isExternalDoc, getExternalCelex, getExternalName, getEurlexUrl } from './utils/referenceDetection';
@@ -107,27 +107,48 @@ export default function App() {
     setHistoryIndex(prev => prev + 1);
   }, []);
 
-  const goBack = useCallback(() => {
-    const idx = historyIdxRef.current;
-    const hist = historyRef.current;
-    if (idx > 0) {
-      const entry = hist[idx - 1];
-      setCurrentDocId(entry.documentId);
-      setCurrentArticleNumber(entry.articleNumber);
-      setHistoryIndex(idx - 1);
-    }
-  }, []);
+  const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
 
-  const goForward = useCallback(() => {
-    const idx = historyIdxRef.current;
-    const hist = historyRef.current;
-    if (idx < hist.length - 1) {
-      const entry = hist[idx + 1];
-      setCurrentDocId(entry.documentId);
-      setCurrentArticleNumber(entry.articleNumber);
-      setHistoryIndex(idx + 1);
-    }
-  }, []);
+  const orderedArticles = useMemo(() => {
+    if (!currentDoc) return [];
+    const articles = currentDoc.articles;
+    const hasRecitals = currentDoc.recitals && currentDoc.recitals.length > 0;
+    const articleNums = articles
+      .map(a => String(a.number))
+      .sort((a, b) => {
+        const na = parseInt(a, 10);
+        const nb = parseInt(b, 10);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return a.localeCompare(b);
+      });
+    return hasRecitals ? ['recitals', ...articleNums] : articleNums;
+  }, [currentDoc]);
+
+  const goToPrevArticle = useCallback(() => {
+    const idx = orderedArticles.indexOf(currentArticleNumber);
+    const prevIdx = idx === -1 ? orderedArticles.length - 1 : (idx - 1 + orderedArticles.length) % orderedArticles.length;
+    const prev = orderedArticles[prevIdx];
+    if (!prev) return;
+    setCurrentArticleNumber(prev);
+    setHistory(h => {
+      const trimmed = h.slice(0, historyIdxRef.current + 1);
+      return [...trimmed, { documentId: currentDocId, articleNumber: prev }];
+    });
+    setHistoryIndex(prevIdx => prevIdx + 1);
+  }, [orderedArticles, currentArticleNumber, currentDocId]);
+
+  const goToNextArticle = useCallback(() => {
+    const idx = orderedArticles.indexOf(currentArticleNumber);
+    const nextIdx = idx === -1 ? 0 : (idx + 1) % orderedArticles.length;
+    const next = orderedArticles[nextIdx];
+    if (!next) return;
+    setCurrentArticleNumber(next);
+    setHistory(h => {
+      const trimmed = h.slice(0, historyIdxRef.current + 1);
+      return [...trimmed, { documentId: currentDocId, articleNumber: next }];
+    });
+    setHistoryIndex(prevIdx => prevIdx + 1);
+  }, [orderedArticles, currentArticleNumber, currentDocId]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -147,16 +168,16 @@ export default function App() {
       }
       if (e.altKey && e.key === 'ArrowLeft') {
         e.preventDefault();
-        goBack();
+        goToPrevArticle();
       }
       if (e.altKey && e.key === 'ArrowRight') {
         e.preventDefault();
-        goForward();
+        goToNextArticle();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [goBack, goForward]);
+  }, [goToPrevArticle, goToNextArticle]);
 
   const handleReferenceClick = useCallback((docId: string, articleNumber: string) => {
     setInspectedRef({ documentId: docId, articleNumber });
@@ -189,7 +210,6 @@ export default function App() {
     );
   }
 
-  const currentDoc = documents.find(d => d.id === currentDocId);
   const inspectedDoc = inspectedRef
     ? documents.find(d => d.id === inspectedRef.documentId)
     : null;
@@ -219,20 +239,18 @@ export default function App() {
           </div>
           <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
             <button
-              onClick={goBack}
-              disabled={historyIndex <= 0}
-              className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-slate-700 disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
-              title={historyIndex > 0 ? `Back to ${history[historyIndex - 1]?.articleNumber === 'recitals' ? 'Recitals' : `Article ${history[historyIndex - 1]?.articleNumber}`}` : 'Back'}
+              onClick={goToPrevArticle}
+              className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-slate-700 transition-all duration-150"
+              title="Previous article"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <button
-              onClick={goForward}
-              disabled={historyIndex >= history.length - 1}
-              className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-slate-700 disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
-              title={historyIndex < history.length - 1 ? `Forward to ${history[historyIndex + 1]?.articleNumber === 'recitals' ? 'Recitals' : `Article ${history[historyIndex + 1]?.articleNumber}`}` : 'Forward'}
+              onClick={goToNextArticle}
+              className="p-1.5 rounded-md hover:bg-white text-slate-500 hover:text-slate-700 transition-all duration-150"
+              title="Next article"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
