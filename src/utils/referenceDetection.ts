@@ -47,6 +47,26 @@ const EXTERNAL_CELEX: Record<string, string> = {
   '32007R0862': 'Migration Statistics Regulation',
   '32001R1049': 'Public Access to Documents Regulation',
   '32004R0883': 'Social Security Coordination Regulation',
+  '32003L0109': 'Long-Term Residents Directive',
+  '32003L0086': 'Family Reunification Directive',
+  '32005L0085': 'Asylum Procedures Directive (old)',
+  '32004L0038': 'Free Movement Directive',
+  '32005L0036': 'Professional Qualifications Directive',
+  '32011L0036': 'Anti-Trafficking Directive',
+  '32016L0680': 'Law Enforcement Data Protection Directive',
+  '32017L0541': 'Terrorism Directive',
+  '32002L0584': 'European Arrest Warrant Framework Decision',
+  '32022L0382': 'Temporary Protection Council Decision',
+  '32018L1046': 'Financial Regulation',
+  '32003R0343': 'Dublin III Regulation',
+  '32013R0604': 'Dublin III Regulation',
+  '32013R0603': 'Eurodac Regulation (old)',
+  '32011R0182': 'EU Patent Regulation',
+  '32022R0922': 'Entry/Exit System',
+  '32011L0095': 'European Works Council Directive',
+  '32013L0032': 'Asylum Procedures Directive',
+  '32013L0033': 'Reception Conditions Directive (old)',
+  '32018L1806': 'Visa Regulation',
 };
 
 const REGULATION_KEYWORDS: [string, string[]][] = [
@@ -328,6 +348,116 @@ export function detectReferences(text: string): RawReference[] {
   const ecRefPattern = /((?:Regulations?|Directive)\s+)?\(EC\)\s+No\s+(\d{1,6})\/(\d{4})/gi;
   while ((match = ecRefPattern.exec(text)) !== null) {
     const [fullMatch, _typePrefix, num, year] = match;
+    const docId = lookupDocId(year, num);
+    if (!docId) continue;
+
+    const alreadyCovered = results.some(r =>
+      r.startIndex <= match!.index && r.endIndex > match!.index
+    );
+    if (alreadyCovered) continue;
+
+    results.push({
+      articleNumber: '1',
+      paragraph: undefined,
+      documentId: docId,
+      text: fullMatch,
+      startIndex: match.index,
+      endIndex: match.index + fullMatch.length,
+    });
+  }
+
+  // Pattern 4b: "Council Directive YYYY/NNN/EC" or "Directive YYYY/NNN/EC" or "Directive YYYY/NNN/EU"
+  const directiveRefPattern = /(?:Council\s+)?Directive\s+(\d{4})\/(\d{1,6})\/(?:EC|EU)/gi;
+  while ((match = directiveRefPattern.exec(text)) !== null) {
+    const [fullMatch, year, num] = match;
+    const docId = lookupDocId(year, num);
+    if (!docId) continue;
+
+    const alreadyCovered = results.some(r =>
+      r.startIndex <= match!.index && r.endIndex > match!.index
+    );
+    if (alreadyCovered) continue;
+
+    results.push({
+      articleNumber: '1',
+      paragraph: undefined,
+      documentId: docId,
+      text: fullMatch,
+      startIndex: match.index,
+      endIndex: match.index + fullMatch.length,
+    });
+  }
+
+  // Pattern 4c: "Regulation (EU) No YYYY/NNNN" format (e.g., "Regulation (EU) No 604/2013")
+  const regNoPattern = /Regulation\s+\(EU\)\s+No\s+(\d{1,6})\/(\d{4})/gi;
+  while ((match = regNoPattern.exec(text)) !== null) {
+    const [fullMatch, num, year] = match;
+    const docId = lookupDocId(year, num);
+    if (!docId) continue;
+
+    const alreadyCovered = results.some(r =>
+      r.startIndex <= match!.index && r.endIndex > match!.index
+    );
+    if (alreadyCovered) continue;
+
+    results.push({
+      articleNumber: '1',
+      paragraph: undefined,
+      documentId: docId,
+      text: fullMatch,
+      startIndex: match.index,
+      endIndex: match.index + fullMatch.length,
+    });
+  }
+
+  // Pattern 4d: "Council Framework Decision YYYY/NNN/JHA" format
+  const frameworkPattern = /(?:Council\s+)?Framework\s+Decision\s+(\d{4})\/(\d{1,6})\/JHA/gi;
+  while ((match = frameworkPattern.exec(text)) !== null) {
+    const [fullMatch, year, num] = match;
+    const docId = lookupDocId(year, num);
+    if (!docId) continue;
+
+    const alreadyCovered = results.some(r =>
+      r.startIndex <= match!.index && r.endIndex > match!.index
+    );
+    if (alreadyCovered) continue;
+
+    results.push({
+      articleNumber: '1',
+      paragraph: undefined,
+      documentId: docId,
+      text: fullMatch,
+      startIndex: match.index,
+      endIndex: match.index + fullMatch.length,
+    });
+  }
+
+  // Pattern 4e: "Council Implementing Decision (EU) YYYY/NNNN" format
+  const implDecisionPattern = /Council\s+Implementing\s+Decision\s+\(EU\)\s+(\d{4})\/(\d{1,6})/gi;
+  while ((match = implDecisionPattern.exec(text)) !== null) {
+    const [fullMatch, year, num] = match;
+    const docId = lookupDocId(year, num);
+    if (!docId) continue;
+
+    const alreadyCovered = results.some(r =>
+      r.startIndex <= match!.index && r.endIndex > match!.index
+    );
+    if (alreadyCovered) continue;
+
+    results.push({
+      articleNumber: '1',
+      paragraph: undefined,
+      documentId: docId,
+      text: fullMatch,
+      startIndex: match.index,
+      endIndex: match.index + fullMatch.length,
+    });
+  }
+
+  // Pattern 4f: "Directive YYYY/NNN/EU" without year suffix (e.g., "Directive 2017/541")
+  const directiveNoSuffixPattern = /Directive\s+(\d{4})\/(\d{1,6})(?!\s*\/)/gi;
+  while ((match = directiveNoSuffixPattern.exec(text)) !== null) {
+    const [fullMatch, year, num] = match;
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
