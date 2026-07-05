@@ -21,33 +21,38 @@ function ExternalReferencePanel({ docId, articleNumber, onClose }: {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-100">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider truncate">
             External Reference
           </p>
-          <p className="text-sm font-medium text-stone-700 truncate mt-1">
+          <p className="text-sm font-medium text-slate-700 truncate mt-0.5">
             {displayName}
           </p>
           {articleNumber !== '1' && (
-            <p className="text-xs text-stone-500 mt-0.5">Article {articleNumber}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Article {articleNumber}</p>
           )}
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-stone-100 rounded text-stone-400 flex-shrink-0">
+        <button onClick={onClose} className="btn-icon ml-2">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
-        <p className="text-sm text-stone-500 text-center">
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+          <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </div>
+        <p className="text-sm text-slate-500 text-center">
           This document is not loaded in the reader.
         </p>
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-150 active:scale-95 shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -71,7 +76,7 @@ export default function App() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [showInspector, setShowInspector] = useState(false);
   const articleScrollRef = useRef<HTMLDivElement>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(256);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
   const sidebarResizing = useRef(false);
   const historyRef = useRef(history);
   const historyIdxRef = useRef(historyIndex);
@@ -123,7 +128,7 @@ export default function App() {
     }
   }, []);
 
-  // Keyboard shortcuts - stable handlers via refs
+  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
@@ -174,10 +179,10 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-stone-50">
+      <div className="flex items-center justify-center h-screen bg-slate-50">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-stone-500 text-sm">Loading documents...</p>
+          <div className="w-10 h-10 border-[3px] border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-500 text-sm">Loading documents...</p>
         </div>
       </div>
     );
@@ -192,20 +197,22 @@ export default function App() {
     : null;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-stone-50">
-      <header className="bg-white border-b border-stone-200 flex-shrink-0">
+    <div className="h-screen flex flex-col overflow-hidden bg-slate-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 flex-shrink-0 shadow-sm z-20">
         <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSidebar(!showSidebar)}
-              className="p-1.5 hover:bg-stone-100 rounded text-stone-500"
+              className="btn-icon"
               title="Toggle sidebar"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="text-sm font-semibold text-stone-700 hidden sm:block">
+            <div className="w-px h-5 bg-slate-200 mx-1" />
+            <h1 className="text-sm font-semibold text-slate-700 hidden sm:block tracking-tight">
               EU Pact on Migration and Asylum Reader
             </h1>
           </div>
@@ -213,7 +220,7 @@ export default function App() {
             <button
               onClick={goBack}
               disabled={historyIndex <= 0}
-              className="p-1.5 hover:bg-stone-100 rounded text-stone-500 disabled:text-stone-300 disabled:cursor-not-allowed"
+              className="btn-icon disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               title="Back"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,17 +230,17 @@ export default function App() {
             <button
               onClick={goForward}
               disabled={historyIndex >= history.length - 1}
-              className="p-1.5 hover:bg-stone-100 rounded text-stone-500 disabled:text-stone-300 disabled:cursor-not-allowed"
+              className="btn-icon disabled:text-slate-300 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               title="Forward"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-            <div className="w-px h-5 bg-stone-200 mx-1" />
+            <div className="w-px h-5 bg-slate-200 mx-1" />
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className={`p-1.5 rounded text-stone-500 ${showSearch ? 'bg-stone-200' : 'hover:bg-stone-100'}`}
+              className={`btn-icon ${showSearch ? 'btn-icon-active' : ''}`}
               title="Search"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +250,7 @@ export default function App() {
             {inspectedRef && (
               <button
                 onClick={() => setShowInspector(!showInspector)}
-                className={`p-1.5 rounded text-stone-500 ${showInspector ? 'bg-blue-100 text-blue-700' : 'hover:bg-stone-100'}`}
+                className={`btn-icon ${showInspector ? 'btn-icon-active' : ''}`}
                 title="Toggle reference inspector"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,6 +262,7 @@ export default function App() {
         </div>
       </header>
 
+      {/* Search panel */}
       {showSearch && (
         <SearchPanel
           documents={documents}
@@ -263,10 +271,12 @@ export default function App() {
         />
       )}
 
+      {/* Main area */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
         {showSidebar && (
           <div
-            className="border-r border-stone-200 bg-white flex-shrink-0 overflow-hidden flex flex-col relative"
+            className="border-r border-slate-200 bg-white flex-shrink-0 overflow-hidden flex flex-col relative sidebar-enter"
             style={{ width: sidebarWidth }}
           >
             <Sidebar
@@ -284,7 +294,7 @@ export default function App() {
                 const startX = e.clientX;
                 const startW = sidebarWidth;
                 const onMove = (ev: MouseEvent) => {
-                  const newW = Math.max(180, Math.min(500, startW + ev.clientX - startX));
+                  const newW = Math.max(200, Math.min(500, startW + ev.clientX - startX));
                   setSidebarWidth(newW);
                 };
                 const onUp = () => {
@@ -299,6 +309,7 @@ export default function App() {
           </div>
         )}
 
+        {/* Article content */}
         <div className="flex-1 overflow-hidden flex">
           <div ref={articleScrollRef} className="flex-1 overflow-y-auto custom-scrollbar">
             {currentDoc && (
@@ -312,8 +323,9 @@ export default function App() {
             )}
           </div>
 
+          {/* Reference inspector */}
           {showInspector && inspectedRef && (
-            <div className="w-96 border-l border-stone-200 bg-white overflow-y-auto custom-scrollbar panel-transition flex-shrink-0">
+            <div className="w-96 border-l border-slate-200 bg-white overflow-y-auto custom-scrollbar panel-transition flex-shrink-0">
               {inspectedDoc && inspectedArticle ? (
                 <ReferenceInspector
                   document={inspectedDoc}
@@ -328,7 +340,7 @@ export default function App() {
                   onClose={() => { setShowInspector(false); setInspectedRef(null); }}
                 />
               ) : (
-                <div className="p-8 text-center text-sm text-stone-400">
+                <div className="p-8 text-center text-sm text-slate-400">
                   Article not found in this document.
                 </div>
               )}
@@ -337,12 +349,19 @@ export default function App() {
         </div>
       </div>
 
-      <footer className="bg-white border-t border-stone-200 px-4 py-1 text-xs text-stone-400 flex-shrink-0 flex items-center justify-between">
-        <span>{currentDoc?.shortName} <span className="text-stone-300">|</span> {getRegulationNumber(currentDocId)} <span className="text-stone-300">|</span> {currentArticleNumber === 'recitals' ? 'Recitals' : `Article ${currentArticleNumber}`}</span>
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 px-4 py-1.5 text-xs text-slate-400 flex-shrink-0 flex items-center justify-between">
+        <span className="flex items-center gap-2">
+          <span className="font-medium text-slate-500">{currentDoc?.shortName}</span>
+          <span className="text-slate-300">|</span>
+          <span>{getRegulationNumber(currentDocId)}</span>
+          <span className="text-slate-300">|</span>
+          <span>{currentArticleNumber === 'recitals' ? 'Recitals' : `Article ${currentArticleNumber}`}</span>
+        </span>
         <span className="flex items-center gap-3">
-          <span>⌘F Search</span>
-          <span>⌥←/→ Navigate</span>
-          <span>Esc Close</span>
+          <span className="hidden sm:inline-flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-medium text-slate-500">⌘F</kbd> Search</span>
+          <span className="hidden sm:inline-flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-medium text-slate-500">⌥←→</kbd> Navigate</span>
+          <span className="inline-flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-medium text-slate-500">Esc</kbd> Close</span>
         </span>
       </footer>
     </div>

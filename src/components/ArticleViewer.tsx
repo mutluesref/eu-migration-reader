@@ -41,27 +41,21 @@ function getIndentLevel(text: string, index?: number, paragraphs?: string[]): nu
   const trimmed = text.trimStart();
   if (/^[—–-]\s/.test(trimmed)) return 3;
 
-  // Multi-character roman numerals are definitive: (ii), (iii), (iv), (vi), (vii), (viii), (ix), (xi), (xii), etc.
   if (/^\([ivx]{2,}\)\s/.test(trimmed)) return 2;
 
-  // Single (i), (v), (x) could be either letter or roman numeral — disambiguate with context
   if (/^\([ivx]\)\s/.test(trimmed)) {
-    // Look at the next paragraph first
     if (paragraphs && index !== undefined && index + 1 < paragraphs.length) {
       const next = paragraphs[index + 1].trimStart();
       if (/^\([ivx]{2,}\)\s/.test(next)) return 2;
       if (/^\([a-hj-z]\)\s/.test(next)) return 1;
     }
-    // Look at the previous paragraph
     if (paragraphs && index !== undefined && index > 0) {
       const prev = paragraphs[index - 1].trimStart();
       if (/^\([a-hj-z]\)\s/.test(prev)) return 1;
       if (/^\([ivx]{2,}\)\s/.test(prev) || /^\([ivx]\)\s/.test(prev)) return 2;
     }
-    // Check within the paragraph for clues
     if (/\([ivx]{2,}\)/.test(text)) return 2;
     if (/\([jk]\)/.test(text)) return 1;
-    // Default: letter for (i), roman for (v) and (x)
     return /^\(i\)\s/.test(trimmed) ? 1 : 2;
   }
 
@@ -169,7 +163,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     if (found) {
       setPopup({
         x: rect.left,
-        y: rect.bottom + 4,
+        y: rect.bottom + 6,
         content: found.content.substring(0, 600) + (found.content.length > 600 ? '...' : ''),
         docName: found.docName,
         articleTitle: found.title,
@@ -183,7 +177,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         : getDocumentShortName(ref.documentId);
       setPopup({
         x: rect.left,
-        y: rect.bottom + 4,
+        y: rect.bottom + 6,
         content: celex ? `External reference — ${docName}` : `Article ${ref.articleNumber}`,
         docName,
         articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
@@ -244,7 +238,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
 
   if (!article && articleNumber !== 'recitals') {
     return (
-      <div className="flex items-center justify-center h-full text-stone-400 text-sm">
+      <div className="flex items-center justify-center h-full text-slate-400 text-sm">
         Article not found
       </div>
     );
@@ -254,83 +248,93 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   if (articleNumber === 'recitals') {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
-          <h2 className="text-xl font-bold text-stone-800 mt-1">Recitals</h2>
-          <p className="text-xs text-stone-400 mt-1">
-            {doc.recitals.length} recitals
-          </p>
-        </div>
-        <div className="space-y-4">
-          {doc.recitals.map(recital => (
-            <div key={recital.number} className="text-sm leading-relaxed text-stone-700">
-              <span className="font-medium text-stone-500">({recital.number})</span>{' '}
-              {recital.text}
+        <div className="card p-6">
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
+              <span className="text-[10px] text-slate-400">{getRegulationNumber(doc.id)}</span>
             </div>
-          ))}
+            <h2 className="text-xl font-bold text-slate-800">Recitals</h2>
+            <p className="text-xs text-slate-400 mt-1">
+              {doc.recitals.length} recitals
+            </p>
+          </div>
+          <div className="space-y-4">
+            {doc.recitals.map(recital => (
+              <div key={recital.number} className="text-sm leading-relaxed text-slate-600 pl-6 border-l-2 border-slate-100">
+                <span className="font-semibold text-slate-400 absolute -ml-6">({recital.number})</span>
+                {recital.text}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8 relative">
-      {/* Sticky article header */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm pt-6 pb-4 border-b border-stone-100 mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
-          <span
-            className="text-[10px] text-stone-400 cursor-context-menu"
-            title="Right-click to copy"
-            onContextMenu={e => {
-              e.preventDefault();
-              copyRegNum(getRegulationNumber(doc.id));
-            }}
-          >
-            {getRegulationNumber(doc.id)}
-          </span>
-          {copiedReg && <span className="text-[10px] text-green-600">Copied!</span>}
+    <div className="max-w-3xl mx-auto px-6 py-8">
+      {/* Article card */}
+      <div className="card overflow-hidden">
+        {/* Sticky article header */}
+        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100">
+          <div className="px-6 pt-6 pb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs uppercase tracking-wider text-blue-600 font-semibold">{doc.shortName}</span>
+              <span
+                className="text-[10px] text-slate-400 cursor-context-menu"
+                title="Right-click to copy"
+                onContextMenu={e => {
+                  e.preventDefault();
+                  copyRegNum(getRegulationNumber(doc.id));
+                }}
+              >
+                {getRegulationNumber(doc.id)}
+              </span>
+              {copiedReg && <span className="text-[10px] text-emerald-600 font-medium">Copied!</span>}
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{article!.title}</h2>
+            {subject && (
+              <p className="text-sm font-medium text-slate-500 mt-1 italic">{subject}</p>
+            )}
+          </div>
         </div>
-        <h2 className="text-2xl font-bold text-stone-800 mt-1">{article!.title}</h2>
-        {subject && (
-          <p className="text-sm font-medium text-stone-500 mt-1 italic">{subject}</p>
-        )}
-      </div>
 
-      {/* Animated content */}
-      <div key={articleNumber} className="article-enter">
-        <div className="article-text">
-          {paragraphSegments.map((para, pi) => (
-            <p key={pi} className="mb-3" style={{ paddingLeft: `${indentLevels[pi] * 24}px` }}>
-              {para.segments.map((seg, si) => {
-                if (seg.type === 'text') {
-                  return <span key={si}>{seg.text}</span>;
-                }
-                const ref = seg.ref;
-                const key = `${ref.documentId}:${ref.articleNumber}`;
-                const isActive = activeRefs.has(key);
-                return (
-                  <span
-                    key={si}
-                    className={`reference-link ${isActive ? 'reference-link-active' : ''}`}
-                    onMouseEnter={e => handleMouseEnterRef(ref, e)}
-                    onMouseLeave={handleMouseLeaveRef}
-                    onClick={() => handleClickRef(ref)}
-                    onDoubleClick={() => handleDoubleClickRef(ref)}
-                    title={`${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}. Click to inspect. Double-click to navigate.`}
-                  >
-                    {seg.text}
-                  </span>
-                );
-              })}
+        {/* Article body */}
+        <div key={articleNumber} className="article-enter px-6 pb-6 pt-4">
+          <div className="article-text">
+            {paragraphSegments.map((para, pi) => (
+              <p key={pi} className="mb-3" style={{ paddingLeft: `${indentLevels[pi] * 24}px` }}>
+                {para.segments.map((seg, si) => {
+                  if (seg.type === 'text') {
+                    return <span key={si}>{seg.text}</span>;
+                  }
+                  const ref = seg.ref;
+                  const key = `${ref.documentId}:${ref.articleNumber}`;
+                  const isActive = activeRefs.has(key);
+                  return (
+                    <span
+                      key={si}
+                      className={`reference-link ${isActive ? 'reference-link-active' : ''}`}
+                      onMouseEnter={e => handleMouseEnterRef(ref, e)}
+                      onMouseLeave={handleMouseLeaveRef}
+                      onClick={() => handleClickRef(ref)}
+                      onDoubleClick={() => handleDoubleClickRef(ref)}
+                      title={`${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}. Click to inspect. Double-click to navigate.`}
+                    >
+                      {seg.text}
+                    </span>
+                  );
+                })}
+              </p>
+            ))}
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-slate-100">
+            <p className="text-xs text-slate-400">
+              <span className="font-medium">Tip:</span> Click a reference to inspect it in the side panel. Double-click to navigate directly.
             </p>
-          ))}
-        </div>
-
-        <div className="mt-8 pt-4 border-t border-stone-100">
-          <p className="text-xs text-stone-400">
-            <span className="font-medium">Tip:</span> Click a reference to open it in the side panel. Double-click to navigate directly.
-          </p>
+          </div>
         </div>
       </div>
 
@@ -343,7 +347,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
           onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
           onMouseLeave={handleMouseLeaveRef}
         >
-          <div className="flex items-center gap-2 mb-1 pb-1 border-b border-stone-100">
+          <div className="flex items-center gap-2 mb-1.5 pb-1.5 border-b border-slate-100">
             <span
               className="text-xs text-blue-600 font-semibold uppercase tracking-wider truncate cursor-context-menu"
               title="Right-click to copy"
@@ -352,13 +356,13 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
                 copyRegNum(getRegulationNumber(doc.id));
               }}
             >{popup.docName}</span>
-            <span className="text-xs text-stone-400">|</span>
-            <span className="text-xs font-medium text-stone-700 truncate">{popup.articleTitle}</span>
+            <span className="text-xs text-slate-300">|</span>
+            <span className="text-xs font-medium text-slate-700 truncate">{popup.articleTitle}</span>
           </div>
           {popup.subject && (
-            <p className="text-xs font-medium text-stone-500 italic mb-1 truncate">{popup.subject}</p>
+            <p className="text-xs font-medium text-slate-500 italic mb-1.5 truncate">{popup.subject}</p>
           )}
-          <div className="text-sm text-stone-600 leading-relaxed">
+          <div className="text-sm text-slate-600 leading-relaxed">
             {popup.content}
           </div>
         </div>

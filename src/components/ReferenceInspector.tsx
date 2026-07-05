@@ -44,9 +44,9 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-100">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider truncate">
+          <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider truncate flex items-center gap-1.5">
             <span
               className="cursor-context-menu"
               title="Right-click to copy"
@@ -55,26 +55,25 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
                 copyRegNum(getRegulationNumber(doc.id));
               }}
             >{doc.shortName}</span>
-            {' '}
             <span className="text-[10px] text-blue-400 font-normal">{getRegulationNumber(doc.id)}</span>
-            {copiedReg && <span className="text-[10px] text-green-600 ml-1">Copied!</span>}
+            {copiedReg && <span className="text-[10px] text-emerald-600 font-medium">Copied!</span>}
           </p>
-          <p className="text-sm font-medium text-stone-700 truncate">{article.title}</p>
+          <p className="text-sm font-medium text-slate-700 truncate mt-0.5">{article.title}</p>
           {article.subject && (
-            <p className="text-xs text-stone-500 italic mt-0.5">{article.subject}</p>
+            <p className="text-xs text-slate-500 italic mt-0.5">{article.subject}</p>
           )}
         </div>
         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
           <button
             onClick={() => onNavigate(doc.id, String(article.number))}
-            className="p-1 hover:bg-stone-100 rounded text-stone-400"
+            className="btn-icon"
             title="Open in main view"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </button>
-          <button onClick={onClose} className="p-1 hover:bg-stone-100 rounded text-stone-400">
+          <button onClick={onClose} className="btn-icon">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -82,7 +81,7 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
         </div>
       </div>
       <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4">
-        <div className="text-sm leading-relaxed text-stone-700 space-y-3">
+        <div className="text-sm leading-relaxed text-slate-600 space-y-3">
           {paragraphs.map((p, i) => (
             <p key={i}>{p}</p>
           ))}
