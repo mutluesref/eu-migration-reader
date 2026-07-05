@@ -155,9 +155,12 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   }, [allDocs]);
 
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const mouseOverRef = useRef(false);
+  const mouseOverPopup = useRef(false);
 
   const handleMouseEnterRef = useCallback((ref: Reference, e: React.MouseEvent) => {
     if (isTouchDevice) return;
+    mouseOverRef.current = true;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     let found = !isExternalDoc(ref.documentId) ? findArticleContent(ref.documentId, ref.articleNumber) : null;
@@ -193,10 +196,27 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
 
   const handleMouseLeaveRef = useCallback(() => {
     if (isTouchDevice) return;
+    mouseOverRef.current = false;
     timeoutRef.current = setTimeout(() => {
-      setPopup(null);
-    }, 500);
+      if (!mouseOverRef.current && !mouseOverPopup.current) {
+        setPopup(null);
+      }
+    }, 300);
   }, [isTouchDevice]);
+
+  const handlePopupMouseEnter = useCallback(() => {
+    mouseOverPopup.current = true;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  }, []);
+
+  const handlePopupMouseLeave = useCallback(() => {
+    mouseOverPopup.current = false;
+    timeoutRef.current = setTimeout(() => {
+      if (!mouseOverRef.current && !mouseOverPopup.current) {
+        setPopup(null);
+      }
+    }, 300);
+  }, []);
 
   const handleClickRef = useCallback((ref: Reference) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -371,10 +391,15 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         <ReferencePopup
           popup={popup}
           popupRef={popupRef}
-          onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
-          onMouseLeave={handleMouseLeaveRef}
+          onMouseEnter={handlePopupMouseEnter}
+          onMouseLeave={handlePopupMouseLeave}
           onClickInspect={handlePopupInspect}
-          onClose={() => { setPopup(null); if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
+          onClose={() => {
+            setPopup(null);
+            mouseOverRef.current = false;
+            mouseOverPopup.current = false;
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          }}
           copyRegNum={copyRegNum}
           regulationNumber={getRegulationNumber(doc.id)}
         />
