@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/vite-env.d.ts","./src/components/articleviewer.tsx","./src/components/referenceinspector.tsx","./src/components/searchpanel.tsx","./src/components/sidebar.tsx","./src/data/documents.ts","./src/utils/referencedetection.ts","./src/utils/search.ts"],"version":"5.9.3"}
