@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { DocumentData, Article } from '../types';
-import { getRegulationNumber } from '../data/documents';
+import { getRegulationNumber, getDocumentShortName } from '../data/documents';
+import { getReverseReferences, type ReverseReference } from '../utils/reverseReferences';
 
 interface Props {
   document: DocumentData;
   article: Article;
   onClose: () => void;
   onNavigate: (docId: string, articleNumber: string) => void;
+  reverseIndex: Map<string, ReverseReference[]>;
+  documents: DocumentData[];
 }
 
 function splitIntoParagraphs(text: string): string[] {
@@ -31,10 +34,28 @@ function stripSubject(content: string, subject: string): string {
   return content;
 }
 
-export default function ReferenceInspector({ document: doc, article, onClose, onNavigate }: Props) {
+const DOC_COLORS: Record<string, string> = {
+  ammr: 'bg-violet-100 text-violet-700',
+  apr: 'bg-blue-100 text-blue-700',
+  rbpr: 'bg-amber-100 text-amber-700',
+  cfmr: 'bg-red-100 text-red-700',
+  eurodac: 'bg-emerald-100 text-emerald-700',
+  sr: 'bg-cyan-100 text-cyan-700',
+  qr: 'bg-indigo-100 text-indigo-700',
+  rcd: 'bg-pink-100 text-pink-700',
+  urfa: 'bg-teal-100 text-teal-700',
+};
+
+export default function ReferenceInspector({ document: doc, article, onClose, onNavigate, reverseIndex, documents }: Props) {
   const cleanContent = stripSubject(article.content, article.subject);
   const paragraphs = splitIntoParagraphs(cleanContent);
   const [copiedReg, setCopiedReg] = useState(false);
+  const [showReverse, setShowReverse] = useState(false);
+
+  const reverseRefs = useMemo(
+    () => getReverseReferences(reverseIndex, doc.id, String(article.number)),
+    [reverseIndex, doc.id, article.number]
+  );
 
   const copyRegNum = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -80,12 +101,53 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4">
-        <div className="text-sm leading-relaxed text-slate-600 space-y-3">
-          {paragraphs.map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        {/* Article content */}
+        <div className="px-4 py-4">
+          <div className="text-sm leading-relaxed text-slate-600 space-y-3">
+            {paragraphs.map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+          </div>
         </div>
+
+        {/* Reverse references section */}
+        {reverseRefs.length > 0 && (
+          <div className="border-t border-slate-200 px-4 py-4">
+            <button
+              onClick={() => setShowReverse(!showReverse)}
+              className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-700 transition-colors w-full text-left"
+            >
+              <svg
+                className={`w-3 h-3 transition-transform ${showReverse ? 'rotate-90' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              Referenced by ({reverseRefs.length})
+            </button>
+            {showReverse && (
+              <div className="mt-3 space-y-2">
+                {reverseRefs.map((ref, i) => (
+                  <div
+                    key={`${ref.sourceDocId}-${ref.sourceArticleNumber}-${i}`}
+                    className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                    onClick={() => onNavigate(ref.sourceDocId, ref.sourceArticleNumber)}
+                  >
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5 ${DOC_COLORS[ref.sourceDocId] || 'bg-slate-100 text-slate-600'}`}>
+                      {ref.sourceDocName}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-slate-700 truncate">Article {ref.sourceArticleNumber} — {ref.sourceArticleTitle}</p>
+                      <p className="text-xs text-slate-400 truncate mt-0.5">"{ref.displayText}"</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -118,7 +118,7 @@ export default function App() {
   const articleScrollRef = useRef<HTMLDivElement>(null);
   const sidebarResizing = useRef(false);
 
-  const { documents, loading, currentDoc } = useDocumentLoader();
+  const { documents, loading, currentDoc, reverseIndex } = useDocumentLoader();
   const { handlePrevArticle, handleNextArticle } = useArticleNavigation(documents);
   const { scrollProgress, showScrollTop, scrollToTop, handleScroll } = useScrollProgress(articleScrollRef);
 
@@ -448,6 +448,8 @@ export default function App() {
                     article={inspectedArticle}
                     onClose={() => { setShowInspector(false); setInspectedRef(null); }}
                     onNavigate={handleReferenceNavigate}
+                    reverseIndex={reverseIndex}
+                    documents={documents}
                   />
                 ) : isExternalDoc(inspectedRef.documentId) ? (
                   <ExternalReferencePanel
