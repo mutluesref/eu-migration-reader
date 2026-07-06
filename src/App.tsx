@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import type { DocumentData } from './types';
-import { getAllDocuments, getRegulationNumber } from './data/documents';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { getRegulationNumber } from './data/documents';
 import { isExternalDoc, getExternalCelex, getExternalName, getEurlexUrl } from './utils/referenceDetection';
 import { useStore } from './store';
 import useTheme from './hooks/useTheme';
 import useOnboarding from './hooks/useOnboarding';
 import useBookmarks from './hooks/useBookmarks';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useArticleNavigation } from './hooks/useArticleNavigation';
+import { useScrollProgress } from './hooks/useScrollProgress';
+import { useDocumentLoader } from './hooks/useDocumentLoader';
 import Sidebar from './components/Sidebar';
 import ArticleViewer from './components/ArticleViewer';
 import ReferenceInspector from './components/ReferenceInspector';
@@ -85,9 +88,6 @@ function ExternalReferencePanel({ docId, articleNumber, onClose }: {
 }
 
 export default function App() {
-  const [documents, setDocuments] = useState<DocumentData[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const currentDocId = useStore(s => s.currentDocId);
   const currentArticleNumber = useStore(s => s.currentArticleNumber);
   const inspectedRef = useStore(s => s.inspectedRef);
@@ -99,8 +99,6 @@ export default function App() {
   const fontSize = useStore(s => s.fontSize);
 
   const navigateTo = useStore(s => s.navigateTo);
-  const goToPrevArticle = useStore(s => s.goToPrevArticle);
-  const goToNextArticle = useStore(s => s.goToNextArticle);
   const setInspectedRef = useStore(s => s.setInspectedRef);
   const toggleSearch = useStore(s => s.toggleSearch);
   const setShowSearch = useStore(s => s.setShowSearch);
@@ -117,95 +115,26 @@ export default function App() {
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
   const articleScrollRef = useRef<HTMLDivElement>(null);
   const sidebarResizing = useRef(false);
 
-  const currentDoc = useMemo(() => documents.find(d => d.id === currentDocId), [documents, currentDocId]);
+  const { documents, loading, currentDoc } = useDocumentLoader();
+  const { handlePrevArticle, handleNextArticle } = useArticleNavigation(documents);
+  const { scrollProgress, showScrollTop, scrollToTop, handleScroll } = useScrollProgress(articleScrollRef);
 
-  const orderedArticles = useMemo(() => {
-    if (!currentDoc) return [];
-    const articles = currentDoc.articles;
-    const hasRecitals = currentDoc.recitals && currentDoc.recitals.length > 0;
-    const articleNums = articles
-      .map(a => String(a.number))
-      .sort((a, b) => {
-        const na = parseInt(a, 10);
-        const nb = parseInt(b, 10);
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return a.localeCompare(b);
-      });
-    return hasRecitals ? ['recitals', ...articleNums] : articleNums;
-  }, [currentDoc]);
-
-  useEffect(() => {
-    const docs = getAllDocuments();
-    setDocuments(docs);
-    setLoading(false);
-  }, []);
+  useKeyboardShortcuts({
+    onToggleSearch: toggleSearch,
+    onToggleSidebar: toggleSidebar,
+    onCloseSearch: () => setShowSearch(false),
+    onCloseInspector: () => setShowInspector(false),
+    onClearInspectedRef: () => setInspectedRef(null),
+    onPrevArticle: handlePrevArticle,
+    onNextArticle: handleNextArticle,
+  });
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
-
-  useEffect(() => {
-    if (articleScrollRef.current) {
-      articleScrollRef.current.scrollTop = 0;
-      setScrollProgress(0);
-      setShowScrollTop(false);
-    }
-  }, [currentDocId, currentArticleNumber]);
-
-  const handlePrevArticle = useCallback(() => {
-    goToPrevArticle(orderedArticles);
-  }, [goToPrevArticle, orderedArticles]);
-
-  const handleNextArticle = useCallback(() => {
-    goToNextArticle(orderedArticles);
-  }, [goToNextArticle, orderedArticles]);
-
-  const handleScroll = useCallback(() => {
-    const el = articleScrollRef.current;
-    if (!el) return;
-    const maxScroll = el.scrollHeight - el.clientHeight;
-    const progress = maxScroll > 0 ? (el.scrollTop / maxScroll) * 100 : 0;
-    setScrollProgress(progress);
-    setShowScrollTop(el.scrollTop > 300);
-  }, []);
-
-  const scrollToTop = useCallback(() => {
-    articleScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
-        e.preventDefault();
-        toggleSearch();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-        e.preventDefault();
-        toggleSidebar();
-      }
-      if (e.key === 'Escape') {
-        setShowSearch(false);
-        setShowInspector(false);
-        setInspectedRef(null);
-      }
-      if (e.altKey && e.key === 'ArrowLeft') {
-        e.preventDefault();
-        handlePrevArticle();
-      }
-      if (e.altKey && e.key === 'ArrowRight') {
-        e.preventDefault();
-        handleNextArticle();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [toggleSearch, toggleSidebar, setShowSearch, setShowInspector, setInspectedRef, handlePrevArticle, handleNextArticle]);
 
   const handleReferenceClick = useCallback((docId: string, articleNumber: string) => {
     setInspectedRef({ documentId: docId, articleNumber });
