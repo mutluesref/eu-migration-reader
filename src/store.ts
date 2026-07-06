@@ -34,6 +34,8 @@ interface AppState {
   recentArticles: RecentArticle[];
   showOnboarding: boolean;
   _onboardingStep: number;
+  compareRef: { documentId: string; articleNumber: string } | null;
+  showCompare: boolean;
 
   navigateTo: (docId: string, articleNumber: string) => void;
   goToPrevArticle: (orderedArticles: string[]) => void;
@@ -53,6 +55,8 @@ interface AppState {
   removeBookmark: (docId: string, articleNumber: string) => void;
   addRecentArticle: (docId: string, articleNumber: string) => void;
   dismissOnboarding: () => void;
+  setCompareRef: (ref: { documentId: string; articleNumber: string } | null) => void;
+  setShowCompare: (show: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -74,6 +78,8 @@ export const useStore = create<AppState>()(
       recentArticles: [],
       showOnboarding: !localStorage.getItem('eu-reader-onboarded'),
       _onboardingStep: 0,
+      compareRef: null,
+      showCompare: false,
 
       navigateTo: (docId, articleNumber) =>
         set((state) => {
@@ -191,6 +197,13 @@ export const useStore = create<AppState>()(
         localStorage.setItem('eu-reader-onboarded', '1');
         set({ showOnboarding: false });
       },
+
+      setCompareRef: (ref) => set({ compareRef: ref, showCompare: ref !== null }),
+
+      setShowCompare: (show) => set((state) => ({
+        showCompare: show,
+        compareRef: show ? state.compareRef : null,
+      })),
     }),
     {
       name: 'eu-migration-reader',

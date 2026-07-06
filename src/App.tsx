@@ -30,6 +30,18 @@ const DOC_ACCENT: Record<string, string> = {
   urfa: 'border-l-teal-500',
 };
 
+const DOC_COLORS: Record<string, string> = {
+  ammr: 'bg-violet-100 text-violet-700',
+  apr: 'bg-blue-100 text-blue-700',
+  rbpr: 'bg-amber-100 text-amber-700',
+  cfmr: 'bg-red-100 text-red-700',
+  eurodac: 'bg-emerald-100 text-emerald-700',
+  sr: 'bg-cyan-100 text-cyan-700',
+  qr: 'bg-indigo-100 text-indigo-700',
+  rcd: 'bg-pink-100 text-pink-700',
+  urfa: 'bg-teal-100 text-teal-700',
+};
+
 function ExternalReferencePanel({ docId, articleNumber, onClose }: {
   docId: string;
   articleNumber: string;
@@ -122,6 +134,11 @@ export default function App() {
   const { handlePrevArticle, handleNextArticle } = useArticleNavigation(documents);
   const { scrollProgress, showScrollTop, scrollToTop, handleScroll } = useScrollProgress(articleScrollRef);
 
+  const compareRef = useStore(s => s.compareRef);
+  const showCompare = useStore(s => s.showCompare);
+  const setCompareRef = useStore(s => s.setCompareRef);
+  const setShowCompare = useStore(s => s.setShowCompare);
+
   useKeyboardShortcuts({
     onToggleSearch: toggleSearch,
     onToggleSidebar: toggleSidebar,
@@ -140,6 +157,11 @@ export default function App() {
     setInspectedRef({ documentId: docId, articleNumber });
     setShowInspector(true);
   }, [setInspectedRef, setShowInspector]);
+
+  const handleCompare = useCallback((docId: string, articleNumber: string) => {
+    setCompareRef({ documentId: docId, articleNumber });
+    setShowCompare(true);
+  }, [setCompareRef, setShowCompare]);
 
   const handleReferenceNavigate = useCallback((docId: string, articleNumber: string) => {
     navigateTo(docId, articleNumber);
@@ -405,7 +427,7 @@ export default function App() {
         <div className="flex-1 overflow-hidden flex">
           <div
             ref={articleScrollRef}
-            className="flex-1 overflow-y-auto custom-scrollbar relative"
+            className={`${showCompare ? 'w-1/2' : 'w-full'} overflow-y-auto custom-scrollbar relative transition-[width] duration-300`}
             onScroll={handleScroll}
           >
             <ErrorBoundary>
@@ -436,6 +458,49 @@ export default function App() {
             )}
           </div>
 
+          {/* Compare pane */}
+          {showCompare && compareRef && (() => {
+            const compareDoc = documents.find(d => d.id === compareRef.documentId);
+            const compareArticle = compareDoc?.articles.find(a => String(a.number) === compareRef.articleNumber);
+            if (!compareDoc || !compareArticle) return null;
+            return (
+              <div className="w-1/2 border-l border-slate-200 dark:border-slate-700 overflow-y-auto custom-scrollbar relative flex flex-col">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex-shrink-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_COLORS[compareRef.documentId] || 'bg-slate-100 text-slate-600'}`}>
+                      {compareDoc.shortName}
+                    </span>
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                      {compareArticle.title}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => { setShowCompare(false); setCompareRef(null); }}
+                    className="btn-icon ml-2 flex-shrink-0"
+                    title="Close comparison"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <ErrorBoundary>
+                    <div className={`border-l-4 ${DOC_COLORS[compareRef.documentId] ? '' : ''}`}>
+                      <ArticleViewer
+                        document={compareDoc}
+                        articleNumber={compareRef.articleNumber}
+                        documents={documents}
+                        onReferenceClick={handleReferenceClick}
+                        onReferenceNavigate={handleReferenceNavigate}
+                      />
+                    </div>
+                  </ErrorBoundary>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Reference inspector */}
           {showInspector && inspectedRef && (
             <>
@@ -448,6 +513,7 @@ export default function App() {
                     article={inspectedArticle}
                     onClose={() => { setShowInspector(false); setInspectedRef(null); }}
                     onNavigate={handleReferenceNavigate}
+                    onCompare={handleCompare}
                     reverseIndex={reverseIndex}
                     documents={documents}
                   />

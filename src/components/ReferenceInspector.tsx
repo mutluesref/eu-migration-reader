@@ -8,6 +8,7 @@ interface Props {
   article: Article;
   onClose: () => void;
   onNavigate: (docId: string, articleNumber: string) => void;
+  onCompare: (docId: string, articleNumber: string) => void;
   reverseIndex: Map<string, ReverseReference[]>;
   documents: DocumentData[];
 }
@@ -46,7 +47,7 @@ const DOC_COLORS: Record<string, string> = {
   urfa: 'bg-teal-100 text-teal-700',
 };
 
-export default function ReferenceInspector({ document: doc, article, onClose, onNavigate, reverseIndex, documents }: Props) {
+export default function ReferenceInspector({ document: doc, article, onClose, onNavigate, onCompare, reverseIndex, documents }: Props) {
   const cleanContent = stripSubject(article.content, article.subject);
   const paragraphs = splitIntoParagraphs(cleanContent);
   const [copiedReg, setCopiedReg] = useState(false);
@@ -85,6 +86,15 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
           )}
         </div>
         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+          <button
+            onClick={() => onCompare(doc.id, String(article.number))}
+            className="btn-icon"
+            title="Compare side by side"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+          </button>
           <button
             onClick={() => onNavigate(doc.id, String(article.number))}
             className="btn-icon"
