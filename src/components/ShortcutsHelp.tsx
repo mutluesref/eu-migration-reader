@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useManagedFocus } from '../hooks/useManagedFocus';
 
 interface Props {
   show: boolean;
@@ -15,6 +16,8 @@ const shortcuts = [
 ];
 
 function ShortcutsHelp({ show, onClose }: Props) {
+  const focusRef = useManagedFocus(show, { trapFocus: true });
+
   if (!show) return null;
 
   return (
@@ -23,7 +26,14 @@ function ShortcutsHelp({ show, onClose }: Props) {
         className="absolute inset-0 bg-surface-900/50 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-sm">
+      <div
+        ref={focusRef}
+        tabIndex={-1}
+        className="relative z-10 w-full max-w-sm outline-none"
+        role="dialog"
+        aria-label="Keyboard shortcuts"
+        aria-modal="true"
+      >
         <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 overflow-hidden">
           <div className="px-5 pt-5 pb-4">
             <div className="flex items-center justify-between mb-4">

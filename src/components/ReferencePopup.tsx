@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useManagedFocus } from '../hooks/useManagedFocus';
 
 export interface PopupInfo {
   x: number;
@@ -50,6 +51,13 @@ function ReferencePopup({
   isTouchDevice,
 }: Props) {
   const paragraphs = splitIntoParagraphs(popup.content);
+  const managedRef = useManagedFocus(true, { trapFocus: isTouchDevice });
+
+  // Merge external popupRef with our managedRef
+  const setRefs = (el: HTMLDivElement | null) => {
+    (popupRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+    (managedRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+  };
 
   if (isTouchDevice) {
     return (
@@ -61,11 +69,12 @@ function ReferencePopup({
         />
         <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4">
           <div
-            ref={popupRef as React.RefObject<HTMLDivElement>}
+            ref={setRefs}
             role="dialog"
             aria-label={`${popup.docName} - ${popup.articleTitle}`}
             aria-modal="true"
-            className="w-full max-w-lg max-h-[80vh] bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 flex flex-col overflow-hidden pointer-events-auto animate-scale-in"
+            tabIndex={-1}
+            className="w-full max-w-lg max-h-[80vh] bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 flex flex-col overflow-hidden pointer-events-auto animate-scale-in outline-none"
           >
             <div className="px-5 pt-5 pb-3 border-b border-surface-100 dark:border-surface-700/50 flex-shrink-0">
               <div className="flex items-center gap-2 mb-1">
@@ -121,10 +130,11 @@ function ReferencePopup({
         onClick={onClose}
       />
       <div
-        ref={popupRef as React.RefObject<HTMLDivElement>}
+        ref={setRefs}
         role="tooltip"
         aria-label={`${popup.docName} - ${popup.articleTitle}`}
-        className="reference-popup cursor-pointer z-50"
+        tabIndex={-1}
+        className="reference-popup cursor-pointer z-50 outline-none"
         style={{ position: 'fixed', left: popup.x, top: popup.y }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}

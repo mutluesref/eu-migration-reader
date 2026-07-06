@@ -3,6 +3,7 @@ import type { DocumentData, Article } from '../types';
 import { getRegulationNumber, getDocumentShortName } from '../data/documents';
 import { getReverseReferences, type ReverseReference } from '../utils/reverseReferences';
 import { DOC_BADGE_COLORS } from '../constants/docColors';
+import { useManagedFocus } from '../hooks/useManagedFocus';
 
 interface Props {
   document: DocumentData;
@@ -41,6 +42,7 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
   const paragraphs = splitIntoParagraphs(cleanContent);
   const [copiedReg, setCopiedReg] = useState(false);
   const [showReverse, setShowReverse] = useState(false);
+  const focusRef = useManagedFocus(true);
 
   const reverseRefs = useMemo(
     () => getReverseReferences(reverseIndex, doc.id, String(article.number)),
@@ -54,7 +56,13 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
   };
 
   return (
-    <div className="flex flex-col h-full" role="region" aria-label={`Inspector: ${article.title}`}>
+    <div
+      ref={focusRef}
+      tabIndex={-1}
+      className="flex flex-col h-full outline-none"
+      role="region"
+      aria-label={`Inspector: ${article.title}`}
+    >
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider truncate flex items-center gap-1.5">

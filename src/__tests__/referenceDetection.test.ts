@@ -20,12 +20,12 @@ describe('referenceDetection', () => {
   });
 
   describe('getEurlexUrl', () => {
-    it('builds correct EUR-Lex URL for regulations', () => {
+    it('builds correct URL for regulations', () => {
       const url = getEurlexUrl('32024R1351');
       expect(url).toBe('https://eur-lex.europa.eu/eli/reg/2024/1351/oj');
     });
 
-    it('builds correct EUR-Lex URL for directives', () => {
+    it('builds correct URL for directives', () => {
       const url = getEurlexUrl('32024L1346');
       expect(url).toBe('https://eur-lex.europa.eu/eli/dir/2024/1346/oj');
     });

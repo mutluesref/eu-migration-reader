@@ -75,4 +75,39 @@ describe('searchDocuments', () => {
     const results = searchDocuments(mockDocs, 'DEFINITIONS');
     expect(results.length).toBe(1);
   });
+
+  it('filters by document id', () => {
+    const results = searchDocuments(mockDocs, 'procedures', { documentId: 'apr', contentType: 'articles' });
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every(r => r.documentId === 'apr')).toBe(true);
+  });
+
+  it('filters by content type', () => {
+    const docWithRecitals: DocumentData[] = [{
+      id: 'test',
+      shortName: 'Test',
+      celex: '1',
+      title: 'Test',
+      recitals: [{ number: 1, text: 'This is a test recital about asylum.' }],
+      articles: [],
+    }];
+    const results = searchDocuments(docWithRecitals, 'asylum', { contentType: 'recitals' });
+    expect(results.length).toBe(1);
+    expect(results[0].source).toBe('recital');
+  });
+
+  it('searches both articles and recitals when contentType is both', () => {
+    const docBoth: DocumentData[] = [{
+      id: 'test',
+      shortName: 'Test',
+      celex: '1',
+      title: 'Test',
+      recitals: [{ number: 1, text: 'Recital about asylum.' }],
+      articles: [{ number: 1, title: 'Asylum article', subject: '', content: 'Content about asylum.' }],
+    }];
+    const results = searchDocuments(docBoth, 'asylum', { contentType: 'both' });
+    expect(results.length).toBeGreaterThanOrEqual(2);
+    expect(results.some(r => r.source === 'article')).toBe(true);
+    expect(results.some(r => r.source === 'recital')).toBe(true);
+  });
 });
