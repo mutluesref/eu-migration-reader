@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import type { DocumentData } from '../types';
 import { searchDocuments, type SearchResult, type SearchFilters, type ContentType } from '../utils/search';
 import { getDocumentIndex } from '../data/documents';
+import { DOC_BADGE_COLORS } from '../constants/docColors';
 
 interface Props {
   documents: DocumentData[];
@@ -22,18 +23,6 @@ function highlightSnippet(snippet: string, query: string): ReactNode[] {
       : p
   );
 }
-
-const DOC_COLORS: Record<string, string> = {
-  ammr: 'bg-violet-100 text-violet-700',
-  apr: 'bg-blue-100 text-blue-700',
-  rbpr: 'bg-amber-100 text-amber-700',
-  cfmr: 'bg-red-100 text-red-700',
-  eurodac: 'bg-emerald-100 text-emerald-700',
-  sr: 'bg-cyan-100 text-cyan-700',
-  qr: 'bg-indigo-100 text-indigo-700',
-  rcd: 'bg-pink-100 text-pink-700',
-  urfa: 'bg-teal-100 text-teal-700',
-};
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   articles: 'Articles',
@@ -175,7 +164,7 @@ export default function SearchPanel({ documents, query, onQueryChange, onResultC
                   onMouseEnter={() => setSelectedIdx(i)}
                 >
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_COLORS[r.documentId] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_BADGE_COLORS[r.documentId] || 'bg-slate-100 text-slate-600'}`}>
                       {r.documentName}
                     </span>
                     <span className="text-xs text-slate-300">|</span>

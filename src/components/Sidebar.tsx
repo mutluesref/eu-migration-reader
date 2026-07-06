@@ -4,6 +4,7 @@ import { getDocumentShortName, getRegulationNumber } from '../data/documents';
 import useBookmarks from '../hooks/useBookmarks';
 import { useAnnotations } from '../hooks/useAnnotations';
 import { useStore } from '../store';
+import { DOC_BORDER_COLORS } from '../constants/docColors';
 
 interface Props {
   documents: DocumentData[];

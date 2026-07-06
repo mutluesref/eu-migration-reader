@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import type { DocumentData, Article } from '../types';
 import { getRegulationNumber, getDocumentShortName } from '../data/documents';
 import { getReverseReferences, type ReverseReference } from '../utils/reverseReferences';
+import { DOC_BADGE_COLORS } from '../constants/docColors';
 
 interface Props {
   document: DocumentData;
@@ -34,18 +35,6 @@ function stripSubject(content: string, subject: string): string {
   }
   return content;
 }
-
-const DOC_COLORS: Record<string, string> = {
-  ammr: 'bg-violet-100 text-violet-700',
-  apr: 'bg-blue-100 text-blue-700',
-  rbpr: 'bg-amber-100 text-amber-700',
-  cfmr: 'bg-red-100 text-red-700',
-  eurodac: 'bg-emerald-100 text-emerald-700',
-  sr: 'bg-cyan-100 text-cyan-700',
-  qr: 'bg-indigo-100 text-indigo-700',
-  rcd: 'bg-pink-100 text-pink-700',
-  urfa: 'bg-teal-100 text-teal-700',
-};
 
 export default function ReferenceInspector({ document: doc, article, onClose, onNavigate, onCompare, reverseIndex, documents }: Props) {
   const cleanContent = stripSubject(article.content, article.subject);
@@ -145,7 +134,7 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
                     className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
                     onClick={() => onNavigate(ref.sourceDocId, ref.sourceArticleNumber)}
                   >
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5 ${DOC_COLORS[ref.sourceDocId] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5 ${DOC_BADGE_COLORS[ref.sourceDocId] || 'bg-slate-100 text-slate-600'}`}>
                       {ref.sourceDocName}
                     </span>
                     <div className="flex-1 min-w-0">

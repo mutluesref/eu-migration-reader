@@ -18,30 +18,7 @@ import ShortcutsHelp from './components/ShortcutsHelp';
 import Toast from './components/Toast';
 import SkeletonLoader from './components/SkeletonLoader';
 import ErrorBoundary from './components/ErrorBoundary';
-
-const DOC_ACCENT: Record<string, string> = {
-  ammr: 'border-l-violet-500',
-  apr: 'border-l-blue-500',
-  rbpr: 'border-l-amber-500',
-  cfmr: 'border-l-red-500',
-  eurodac: 'border-l-emerald-500',
-  sr: 'border-l-cyan-500',
-  qr: 'border-l-indigo-500',
-  rcd: 'border-l-pink-500',
-  urfa: 'border-l-teal-500',
-};
-
-const DOC_COLORS: Record<string, string> = {
-  ammr: 'bg-violet-100 text-violet-700',
-  apr: 'bg-blue-100 text-blue-700',
-  rbpr: 'bg-amber-100 text-amber-700',
-  cfmr: 'bg-red-100 text-red-700',
-  eurodac: 'bg-emerald-100 text-emerald-700',
-  sr: 'bg-cyan-100 text-cyan-700',
-  qr: 'bg-indigo-100 text-indigo-700',
-  rcd: 'bg-pink-100 text-pink-700',
-  urfa: 'bg-teal-100 text-teal-700',
-};
+import { DOC_BORDER_COLORS, DOC_BADGE_COLORS } from './constants/docColors';
 
 function ExternalReferencePanel({ docId, articleNumber, onClose }: {
   docId: string;
@@ -440,7 +417,7 @@ export default function App() {
             onScroll={handleScroll}
           >
             <ErrorBoundary>
-              <div className={`border-l-4 ${DOC_ACCENT[currentDocId] || ''}`}>
+              <div className={`border-l-4 ${DOC_BORDER_COLORS[currentDocId] || ''}`}>
                 {currentDoc && (
                   <ArticleViewer
                     document={currentDoc}
@@ -476,7 +453,7 @@ export default function App() {
               <div className="w-1/2 border-l border-slate-200 dark:border-slate-700 overflow-y-auto custom-scrollbar relative flex flex-col">
                 <div className="flex items-center justify-between px-4 py-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex-shrink-0">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_COLORS[compareRef.documentId] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_BADGE_COLORS[compareRef.documentId] || 'bg-slate-100 text-slate-600'}`}>
                       {compareDoc.shortName}
                     </span>
                     <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
@@ -495,7 +472,7 @@ export default function App() {
                 </div>
                 <div className="flex-1 overflow-y-auto">
                   <ErrorBoundary>
-                    <div className={`border-l-4 ${DOC_COLORS[compareRef.documentId] ? '' : ''}`}>
+                    <div className={`border-l-4 ${DOC_BADGE_COLORS[compareRef.documentId] ? '' : ''}`}>
                       <ArticleViewer
                         document={compareDoc}
                         articleNumber={compareRef.articleNumber}
