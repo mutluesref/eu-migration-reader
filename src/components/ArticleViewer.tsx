@@ -4,6 +4,7 @@ import { detectReferences, createReference, isExternalDoc, getExternalCelex, get
 import { getDocumentShortName, getRegulationNumber } from '../data/documents';
 import { useStore } from '../store';
 import useBookmarks from '../hooks/useBookmarks';
+import { useAnnotations } from '../hooks/useAnnotations';
 import ArticleHeader from './ArticleHeader';
 import RecitalView from './RecitalView';
 import ReferencePopup from './ReferencePopup';
@@ -98,12 +99,16 @@ function getRefShortName(docId: string): string {
 export default function ArticleViewer({ document: doc, articleNumber, documents: allDocs, onReferenceClick, onReferenceNavigate }: Props) {
   const fontSize = useStore((s) => s.fontSize);
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
+  const { getAnnotation, hasAnnotation, setAnnotation } = useAnnotations();
 
   const [popup, setPopup] = useState<PopupInfo | null>(null);
   const [activeRefs, setActiveRefs] = useState<Set<string>>(new Set());
   const popupRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const [copiedReg, setCopiedReg] = useState(false);
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const copyRegNum = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
@@ -366,6 +371,19 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   }
 
   const bookmarked = isBookmarked(doc.id, String(article!.number));
+  const hasNote = hasAnnotation(doc.id, articleNumber);
+  const currentNote = getAnnotation(doc.id, articleNumber);
+
+  const handleToggleNote = useCallback(() => {
+    if (showNoteEditor) {
+      setAnnotation(doc.id, articleNumber, noteText);
+      setShowNoteEditor(false);
+    } else {
+      setNoteText(currentNote);
+      setShowNoteEditor(true);
+      setTimeout(() => noteTextareaRef.current?.focus(), 100);
+    }
+  }, [showNoteEditor, noteText, currentNote, doc.id, articleNumber, setAnnotation]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -375,7 +393,52 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
           article={article!}
           copiedReg={copiedReg}
           onCopyReg={copyRegNum}
+          hasNote={hasNote}
+          onToggleNote={handleToggleNote}
         />
+
+        {/* Note editor */}
+        {showNoteEditor && (
+          <div className="px-4 sm:px-6 py-3 bg-amber-50 dark:bg-amber-900/10 border-b border-amber-200 dark:border-amber-800/30">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">Personal Note</span>
+            </div>
+            <textarea
+              ref={noteTextareaRef}
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+              placeholder="Add a note about this article..."
+              className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-700 border border-amber-200 dark:border-amber-700/50 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent placeholder:text-amber-300 dark:placeholder:text-amber-600"
+              rows={3}
+            />
+            <div className="flex items-center justify-between mt-2">
+              <button
+                onClick={() => { if (noteText.trim()) setAnnotation(doc.id, articleNumber, noteText); else { setAnnotation(doc.id, articleNumber, ''); } setShowNoteEditor(false); }}
+                className="text-xs font-medium px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+              >
+                Save note
+              </button>
+              {currentNote && (
+                <button
+                  onClick={() => { setAnnotation(doc.id, articleNumber, ''); setNoteText(''); setShowNoteEditor(false); }}
+                  className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 transition-colors"
+                >
+                  Delete note
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Existing note display */}
+        {!showNoteEditor && hasNote && (
+          <div className="px-4 sm:px-6 py-3 bg-amber-50/50 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-800/20">
+            <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">{currentNote}</p>
+          </div>
+        )}
 
         <div key={articleNumber} className="article-enter px-4 sm:px-6 pb-6 pt-4">
           <div className="article-text dark:text-slate-300" style={{ fontSize: `${fontSize}px` }}>

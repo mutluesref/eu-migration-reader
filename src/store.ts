@@ -15,6 +15,13 @@ export interface RecentArticle {
   timestamp: number;
 }
 
+export interface Annotation {
+  docId: string;
+  articleNumber: string;
+  text: string;
+  timestamp: number;
+}
+
 export type Theme = 'light' | 'dark' | 'system';
 
 interface AppState {
@@ -36,6 +43,7 @@ interface AppState {
   _onboardingStep: number;
   compareRef: { documentId: string; articleNumber: string } | null;
   showCompare: boolean;
+  annotations: Record<string, Annotation>;
 
   navigateTo: (docId: string, articleNumber: string) => void;
   goToPrevArticle: (orderedArticles: string[]) => void;
@@ -57,6 +65,8 @@ interface AppState {
   dismissOnboarding: () => void;
   setCompareRef: (ref: { documentId: string; articleNumber: string } | null) => void;
   setShowCompare: (show: boolean) => void;
+  setAnnotation: (docId: string, articleNumber: string, text: string) => void;
+  removeAnnotation: (docId: string, articleNumber: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -80,6 +90,7 @@ export const useStore = create<AppState>()(
       _onboardingStep: 0,
       compareRef: null,
       showCompare: false,
+      annotations: {},
 
       navigateTo: (docId, articleNumber) =>
         set((state) => {
@@ -204,6 +215,20 @@ export const useStore = create<AppState>()(
         showCompare: show,
         compareRef: show ? state.compareRef : null,
       })),
+
+      setAnnotation: (docId, articleNumber, text) =>
+        set((state) => ({
+          annotations: {
+            ...state.annotations,
+            [`${docId}:${articleNumber}`]: { docId, articleNumber, text, timestamp: Date.now() },
+          },
+        })),
+
+      removeAnnotation: (docId, articleNumber) =>
+        set((state) => {
+          const { [`${docId}:${articleNumber}`]: _, ...rest } = state.annotations;
+          return { annotations: rest };
+        }),
     }),
     {
       name: 'eu-migration-reader',
@@ -215,6 +240,7 @@ export const useStore = create<AppState>()(
         showOnboarding: state.showOnboarding,
         showSidebar: state.showSidebar,
         sidebarWidth: state.sidebarWidth,
+        annotations: state.annotations,
       }),
     }
   )

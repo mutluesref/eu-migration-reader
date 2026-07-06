@@ -7,9 +7,11 @@ interface Props {
   article: Article;
   copiedReg: boolean;
   onCopyReg: (text: string) => void;
+  hasNote: boolean;
+  onToggleNote: () => void;
 }
 
-function ArticleHeader({ doc, article, copiedReg, onCopyReg }: Props) {
+function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNote }: Props) {
   const regNumber = getRegulationNumber(doc.id);
 
   return (
@@ -32,6 +34,16 @@ function ArticleHeader({ doc, article, copiedReg, onCopyReg }: Props) {
           {copiedReg && (
             <span className="text-[10px] text-accent-emerald font-medium animate-fade-in">Copied!</span>
           )}
+          <div className="flex-1" />
+          <button
+            onClick={onToggleNote}
+            className={`p-1.5 rounded-lg transition-colors ${hasNote ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'text-surface-400 hover:text-surface-600 hover:bg-surface-100 dark:hover:bg-surface-800'}`}
+            title={hasNote ? 'Edit note' : 'Add note'}
+          >
+            <svg className="w-4 h-4" fill={hasNote ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
         </div>
         
         {(article.part || article.chapter || article.section) && (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { DocumentData } from '../types';
 import { getDocumentShortName, getRegulationNumber } from '../data/documents';
 import useBookmarks from '../hooks/useBookmarks';
+import { useAnnotations } from '../hooks/useAnnotations';
 import { useStore } from '../store';
 
 interface Props {
@@ -28,6 +29,7 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const { bookmarks, removeBookmark } = useBookmarks();
+  const { hasAnnotation } = useAnnotations();
   const recentArticles = useStore(s => s.recentArticles);
 
   const copyRegNumber = (docId: string, regNum: string) => {
@@ -115,7 +117,7 @@ export default function Sidebar({ documents, currentDocId, currentArticleNumber,
                       Recitals
                     </div>
                   )}
-                  {renderArticleList(doc, isActive, currentArticleNumber, onNavigate)}
+                  {renderArticleList(doc, isActive, currentArticleNumber, onNavigate, hasAnnotation)}
                 </div>
               )}
             </div>
@@ -203,6 +205,7 @@ function renderArticleList(
   isActive: boolean,
   currentArticleNumber: string,
   onNavigate: (docId: string, articleNumber: string) => void,
+  hasAnnotationFn: (docId: string, articleNumber: string) => boolean,
 ) {
   const items: React.ReactNode[] = [];
 
@@ -210,6 +213,7 @@ function renderArticleList(
     const artNum = String(article.number);
     const label = formatArticleLabel(article.title, article.subject);
     const isActiveArt = isActive && artNum === currentArticleNumber;
+    const hasNote = hasAnnotationFn(doc.id, artNum);
     items.push(
       <div
         key={artNum}
@@ -218,6 +222,7 @@ function renderArticleList(
         title={label}
       >
         {isActiveArt && <span className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0 active-dot" />}
+        {hasNote && !isActiveArt && <span className="w-1 h-1 rounded-full bg-amber-400 flex-shrink-0" />}
         <span className="truncate">
           {label.length > 50 ? label.substring(0, 47) + '...' : label}
         </span>
