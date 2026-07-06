@@ -154,9 +154,21 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     return { content: clean, title: a.title, subject: a.subject, docName: d.shortName };
   }, [allDocs]);
 
-  const isTouchDevice = typeof window !== 'undefined' && 
-    window.matchMedia('(pointer: coarse)').matches && 
-    !window.matchMedia('(hover: hover)').matches;
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  
+  useEffect(() => {
+    const handleTouchStart = () => setIsTouchDevice(true);
+    const handleMouseDown = () => setIsTouchDevice(false);
+    
+    window.addEventListener('touchstart', handleTouchStart, { once: true, passive: true });
+    window.addEventListener('mousedown', handleMouseDown);
+    
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, []);
+  
   const mouseOverRef = useRef(false);
   const mouseOverPopup = useRef(false);
   const currentRefEl = useRef<HTMLElement | null>(null);
@@ -426,6 +438,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
           }}
           copyRegNum={copyRegNum}
           regulationNumber={getRegulationNumber(doc.id)}
+          isTouchDevice={isTouchDevice}
         />
       )}
     </div>

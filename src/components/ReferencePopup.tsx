@@ -20,6 +20,7 @@ interface Props {
   onClose: () => void;
   copyRegNum: (text: string) => void;
   regulationNumber: string;
+  isTouchDevice: boolean;
 }
 
 function splitIntoParagraphs(text: string): string[] {
@@ -46,10 +47,8 @@ function ReferencePopup({
   onClose,
   copyRegNum,
   regulationNumber,
+  isTouchDevice,
 }: Props) {
-  const isTouchDevice = typeof window !== 'undefined' && 
-    window.matchMedia('(pointer: coarse)').matches && 
-    !window.matchMedia('(hover: hover)').matches;
   const paragraphs = splitIntoParagraphs(popup.content);
 
   if (isTouchDevice) {
