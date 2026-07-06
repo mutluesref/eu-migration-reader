@@ -62,6 +62,9 @@ function ReferencePopup({
         <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4">
           <div
             ref={popupRef as React.RefObject<HTMLDivElement>}
+            role="dialog"
+            aria-label={`${popup.docName} - ${popup.articleTitle}`}
+            aria-modal="true"
             className="w-full max-w-lg max-h-[80vh] bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 flex flex-col overflow-hidden pointer-events-auto animate-scale-in"
           >
             <div className="px-5 pt-5 pb-3 border-b border-surface-100 dark:border-surface-700/50 flex-shrink-0">
@@ -119,6 +122,8 @@ function ReferencePopup({
       />
       <div
         ref={popupRef as React.RefObject<HTMLDivElement>}
+        role="tooltip"
+        aria-label={`${popup.docName} - ${popup.articleTitle}`}
         className="reference-popup cursor-pointer z-50"
         style={{ position: 'fixed', left: popup.x, top: popup.y }}
         onMouseEnter={onMouseEnter}

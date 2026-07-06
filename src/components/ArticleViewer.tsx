@@ -456,11 +456,20 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
                       key={si}
                       data-ref={`${ref.documentId}:${ref.articleNumber}`}
                       className={`reference-link ${isActive ? 'reference-link-active' : ''}`}
+                      role="link"
+                      tabIndex={0}
+                      aria-label={`Reference to ${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}`}
                       onMouseEnter={e => handleMouseEnterRef(ref, e)}
                       onMouseLeave={handleMouseLeaveRef}
                       onClick={() => handleClickRef(ref)}
                       onDoubleClick={() => handleDoubleClickRef(ref)}
-                      title={`${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}. Tap to inspect. Double-tap to navigate.`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleClickRef(ref);
+                        }
+                      }}
+                      title={`${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}. Click to inspect. Double-click to navigate.`}
                     >
                       {seg.text}
                     </span>

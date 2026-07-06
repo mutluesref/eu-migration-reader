@@ -90,6 +90,11 @@
     background: linear-gradient(180deg, transparent 40%, rgba(59, 130, 246, 0.12) 40%);
   }
 
+  .reference-link:focus-visible {
+    @apply ring-2 ring-brand-500 ring-offset-1 rounded-sm;
+    outline: none;
+  }
+
   .dark .reference-link {
     @apply text-brand-400;
     border-bottom-color: rgba(96, 165, 250, 0.3);
@@ -178,6 +183,11 @@
     @apply bg-surface-100;
     color: #334155;
     transform: translateY(-1px);
+  }
+
+  .btn-icon:focus-visible {
+    @apply ring-2 ring-brand-500 ring-offset-1;
+    outline: none;
   }
 
   .btn-icon:active {

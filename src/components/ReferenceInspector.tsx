@@ -65,7 +65,7 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" role="region" aria-label={`Inspector: ${article.title}`}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider truncate flex items-center gap-1.5">
