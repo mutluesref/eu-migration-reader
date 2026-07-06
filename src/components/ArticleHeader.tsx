@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { DocumentData, Article } from '../types';
-import { getRegulationNumber, getDocumentIndex } from '../data/documents';
+import { getRegulationNumber } from '../data/documents';
 
 interface Props {
   doc: DocumentData;
@@ -13,8 +13,6 @@ interface Props {
 
 function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNote }: Props) {
   const regNumber = getRegulationNumber(doc.id);
-  const docIndex = getDocumentIndex().find(d => d.id === doc.id);
-  const verifiedDate = docIndex?.lastVerified;
 
   return (
     <div className="sticky top-0 z-10 glass dark:bg-surface-900/90 border-b border-surface-200/60 dark:border-surface-700/60 rounded-t-2xl">
@@ -81,15 +79,6 @@ function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNo
         {article.subject && (
           <p className="text-sm font-medium text-surface-500 dark:text-surface-400 mt-2 leading-relaxed">
             {article.subject}
-          </p>
-        )}
-
-        {verifiedDate && (
-          <p className="text-[11px] text-surface-400 dark:text-surface-500 mt-3 flex items-center gap-1.5">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Text verified against EUR-Lex on {verifiedDate}
           </p>
         )}
       </div>

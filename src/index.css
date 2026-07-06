@@ -68,6 +68,9 @@
     margin-bottom: 1rem;
     text-align: justify;
     hyphens: auto;
+    -webkit-hyphens: auto;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   .article-text .paragraph-indent {

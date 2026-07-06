@@ -5,8 +5,7 @@
     "celex": "32024R1351",
     "title": "REGULATION (EU) 2024/1351 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 on asylum and migration management, amending Regulations (EU) 2021/1147 and (EU) 2021/1060 and repealing Regulation (EU) No 604/2013",
     "articleCount": 85,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "apr",
@@ -14,8 +13,7 @@
     "celex": "32024R1348",
     "title": "REGULATION (EU) 2024/1348 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 establishing a common procedure for international protection in the Union and repealing Directive 2013/32/EU",
     "articleCount": 79,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "rbpr",
@@ -23,8 +21,7 @@
     "celex": "32024R1349",
     "title": "REGULATION (EU) 2024/1349 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 establishing a return border procedure, and amending Regulation (EU) 2021/1148",
     "articleCount": 14,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "cfmr",
@@ -32,17 +29,15 @@
     "celex": "32024R1359",
     "title": "REGULATION (EU) 2024/1359 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 addressing situations of crisis and force majeure in the field of migration and asylum and amending Regulation (EU) 2021/1147",
     "articleCount": 20,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "eurodac",
     "shortName": "Eurodac Regulation",
     "celex": "32024R1358",
-    "title": "REGULATION (EU) 2024/1358 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 on the establishment of 'Eurodac' for the comparison of biometric data in order to effectively apply Regulations (EU) 2024/1351 and (EU) 2024/1350 of the European Parliament and of the Council and Council Directive 2001/55/EC and to identify illegally staying third-country nationals and stateless persons and on requests for the comparison with Eurodac data by Member States' law enforcement authorities and Europol for law enforcement purposes, amending Regulations (EU) 2018/1240 and (EU) 2019/818 of the European Parliament and of the Council and repealing Regulation (EU) No 603/2013 of the European Parliament and of the Council",
+    "title": "REGULATION (EU) 2024/1358 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 on the establishment of ‘Eurodac’ for the comparison of biometric data in order to effectively apply Regulations (EU) 2024/1351 and (EU) 2024/1350 of the European Parliament and of the Council and Council Directive 2001/55/EC and to identify illegally staying third-country nationals and stateless persons and on requests for the comparison with Eurodac data by Member States’ law enforcement authorities and Europol for law enforcement purposes, amending Regulations (EU) 2018/1240 and (EU) 2019/818 of the European Parliament and of the Council and repealing Regulation (EU) No 603/2013 of the European Parliament and of the Council",
     "articleCount": 63,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "sr",
@@ -50,8 +45,7 @@
     "celex": "32024R1356",
     "title": "REGULATION (EU) 2024/1356 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 introducing the screening of third-country nationals at the external borders and amending Regulations (EC) No 767/2008, (EU) 2017/2226, (EU) 2018/1240 and (EU) 2019/817",
     "articleCount": 25,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "qr",
@@ -59,8 +53,7 @@
     "celex": "32024R1347",
     "title": "REGULATION (EU) 2024/1347 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 on standards for the qualification of third-country nationals or stateless persons as beneficiaries of international protection, for a uniform status for refugees or for persons eligible for subsidiary protection and for the content of the protection granted, amending Council Directive 2003/109/EC and repealing Directive 2011/95/EU of the European Parliament and of the Council",
     "articleCount": 42,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "rcd",
@@ -68,8 +61,7 @@
     "celex": "32024L1346",
     "title": "DIRECTIVE (EU) 2024/1346 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 laying down standards for the reception of applicants for international protection",
     "articleCount": 38,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   },
   {
     "id": "urfa",
@@ -77,7 +69,6 @@
     "celex": "32024R1350",
     "title": "REGULATION (EU) 2024/1350 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 14 May 2024 establishing a Union Resettlement and Humanitarian Admission Framework, and amending Regulation (EU) 2021/1147",
     "articleCount": 16,
-    "hasError": false,
-    "lastVerified": "2024-05-14"
+    "hasError": false
   }
 ]

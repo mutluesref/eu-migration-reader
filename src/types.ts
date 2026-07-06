@@ -25,7 +25,6 @@ export interface DocumentIndex {
   title: string;
   articleCount: number;
   hasError: boolean;
-  lastVerified: string;
 }
 
 export interface Reference {
