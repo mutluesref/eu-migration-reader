@@ -44,6 +44,7 @@ interface AppState {
   compareRef: { documentId: string; articleNumber: string } | null;
   showCompare: boolean;
   annotations: Record<string, Annotation>;
+  showShortcuts: boolean;
 
   navigateTo: (docId: string, articleNumber: string) => void;
   goToPrevArticle: (orderedArticles: string[]) => void;
@@ -67,6 +68,7 @@ interface AppState {
   setShowCompare: (show: boolean) => void;
   setAnnotation: (docId: string, articleNumber: string, text: string) => void;
   removeAnnotation: (docId: string, articleNumber: string) => void;
+  setShowShortcuts: (show: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -91,6 +93,7 @@ export const useStore = create<AppState>()(
       compareRef: null,
       showCompare: false,
       annotations: {},
+      showShortcuts: false,
 
       navigateTo: (docId, articleNumber) =>
         set((state) => {
@@ -229,6 +232,8 @@ export const useStore = create<AppState>()(
           const { [`${docId}:${articleNumber}`]: _, ...rest } = state.annotations;
           return { annotations: rest };
         }),
+
+      setShowShortcuts: (show) => set({ showShortcuts: show }),
     }),
     {
       name: 'eu-migration-reader',

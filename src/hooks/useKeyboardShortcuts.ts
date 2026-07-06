@@ -8,6 +8,7 @@ interface UseKeyboardShortcutsProps {
   onClearInspectedRef: () => void;
   onPrevArticle: () => void;
   onNextArticle: () => void;
+  onToggleShortcuts: () => void;
 }
 
 export function useKeyboardShortcuts({
@@ -18,9 +19,13 @@ export function useKeyboardShortcuts({
   onClearInspectedRef,
   onPrevArticle,
   onNextArticle,
+  onToggleShortcuts,
 }: UseKeyboardShortcutsProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in input fields
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
       if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
         e.preventDefault();
         onToggleSearch();
@@ -42,8 +47,12 @@ export function useKeyboardShortcuts({
         e.preventDefault();
         onNextArticle();
       }
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        onToggleShortcuts();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onToggleSearch, onToggleSidebar, onCloseSearch, onCloseInspector, onClearInspectedRef, onPrevArticle, onNextArticle]);
+  }, [onToggleSearch, onToggleSidebar, onCloseSearch, onCloseInspector, onClearInspectedRef, onPrevArticle, onNextArticle, onToggleShortcuts]);
 }

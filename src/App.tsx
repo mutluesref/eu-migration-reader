@@ -14,6 +14,7 @@ import ArticleViewer from './components/ArticleViewer';
 import ReferenceInspector from './components/ReferenceInspector';
 import SearchPanel from './components/SearchPanel';
 import Onboarding from './components/Onboarding';
+import ShortcutsHelp from './components/ShortcutsHelp';
 import Toast from './components/Toast';
 import SkeletonLoader from './components/SkeletonLoader';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -136,6 +137,8 @@ export default function App() {
 
   const compareRef = useStore(s => s.compareRef);
   const showCompare = useStore(s => s.showCompare);
+  const showShortcuts = useStore(s => s.showShortcuts);
+  const setShowShortcuts = useStore(s => s.setShowShortcuts);
   const setCompareRef = useStore(s => s.setCompareRef);
   const setShowCompare = useStore(s => s.setShowCompare);
 
@@ -147,6 +150,7 @@ export default function App() {
     onClearInspectedRef: () => setInspectedRef(null),
     onPrevArticle: handlePrevArticle,
     onNextArticle: handleNextArticle,
+    onToggleShortcuts: () => setShowShortcuts(!showShortcuts),
   });
 
   useEffect(() => {
@@ -227,6 +231,11 @@ export default function App() {
         onNext={nextStep}
         onPrev={prevStep}
         onDismiss={dismissOnboarding}
+      />
+
+      <ShortcutsHelp
+        show={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
       />
 
       {toast && (
