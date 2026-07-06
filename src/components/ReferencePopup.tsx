@@ -47,7 +47,9 @@ function ReferencePopup({
   copyRegNum,
   regulationNumber,
 }: Props) {
-  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const isTouchDevice = typeof window !== 'undefined' && 
+    window.matchMedia('(pointer: coarse)').matches && 
+    !window.matchMedia('(hover: hover)').matches;
   const paragraphs = splitIntoParagraphs(popup.content);
 
   if (isTouchDevice) {

@@ -154,7 +154,9 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     return { content: clean, title: a.title, subject: a.subject, docName: d.shortName };
   }, [allDocs]);
 
-  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const isTouchDevice = typeof window !== 'undefined' && 
+    window.matchMedia('(pointer: coarse)').matches && 
+    !window.matchMedia('(hover: hover)').matches;
   const mouseOverRef = useRef(false);
   const mouseOverPopup = useRef(false);
   const currentRefEl = useRef<HTMLElement | null>(null);
