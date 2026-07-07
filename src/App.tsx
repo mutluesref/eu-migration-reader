@@ -100,6 +100,7 @@ export default function App() {
   const setShowInspector = useStore(s => s.setShowInspector);
   const setFontSize = useStore(s => s.setFontSize);
 
+  const theme = useStore(s => s.theme);
   const { isDark, setTheme: setThemeFn } = useTheme();
   const { showOnboarding, dismissOnboarding, stepIndex, nextStep, prevStep } = useOnboarding();
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
@@ -351,7 +352,7 @@ export default function App() {
               <button
                 onClick={cycleTheme}
                 className="btn-icon"
-                title={`Theme: ${useStore.getState().theme}`}
+                title={`Theme: ${theme}`}
               >
                 {themeIcon}
               </button>
@@ -398,6 +399,7 @@ export default function App() {
                   const startX = e.clientX;
                   const startW = sidebarWidth;
                   const onMove = (ev: MouseEvent) => {
+                    if (!sidebarResizing.current) return;
                     const newW = Math.max(200, Math.min(500, startW + ev.clientX - startX));
                     setSidebarWidth(newW);
                   };
@@ -506,7 +508,6 @@ export default function App() {
                     onNavigate={handleReferenceNavigate}
                     onCompare={handleCompare}
                     reverseIndex={reverseIndex}
-                    documents={documents}
                   />
                 ) : isExternalDoc(inspectedRef.documentId) ? (
                   <ExternalReferencePanel

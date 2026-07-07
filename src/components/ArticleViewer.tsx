@@ -9,6 +9,7 @@ import ArticleHeader from './ArticleHeader';
 import RecitalView from './RecitalView';
 import ReferencePopup from './ReferencePopup';
 import type { PopupInfo } from './ReferencePopup';
+import { splitIntoParagraphs } from '../utils/text';
 
 interface Props {
   document: DocumentData;
@@ -19,21 +20,6 @@ interface Props {
 }
 
 type Segment = { type: 'text'; text: string } | { type: 'ref'; text: string; ref: Reference };
-
-function splitIntoParagraphs(text: string): string[] {
-  const paragraphs: string[] = [];
-  const parts = text.split('\n\n');
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (trimmed) {
-      paragraphs.push(trimmed);
-    }
-  }
-  if (paragraphs.length === 0 && text.trim()) {
-    paragraphs.push(text.trim());
-  }
-  return paragraphs;
-}
 
 function getIndentLevel(text: string, index?: number, paragraphs?: string[]): number {
   const trimmed = text.trimStart();

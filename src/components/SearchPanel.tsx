@@ -46,15 +46,19 @@ export default function SearchPanel({ documents, query, onQueryChange, onResultC
 
   useEffect(() => {
     if (query.trim().length >= 2) {
-      const filters: SearchFilters = {
-        documentId: documentFilter || undefined,
-        contentType,
-      };
-      const res = searchDocuments(documents, query, filters);
-      setResults(res);
-      setSelectedIdx(-1);
+      const timer = setTimeout(() => {
+        const filters: SearchFilters = {
+          documentId: documentFilter || undefined,
+          contentType,
+        };
+        const res = searchDocuments(documents, query, filters);
+        setResults(res);
+        setSelectedIdx(-1);
+      }, 200);
+      return () => clearTimeout(timer);
     } else {
       setResults([]);
+      setSelectedIdx(-1);
     }
   }, [query, documents, documentFilter, contentType]);
 
@@ -67,7 +71,7 @@ export default function SearchPanel({ documents, query, onQueryChange, onResultC
       setSelectedIdx(prev => Math.max(prev - 1, 0));
     } else if (e.key === 'Enter' && selectedIdx >= 0 && results[selectedIdx]) {
       const r = results[selectedIdx];
-      onResultClick(r.documentId, r.articleNumber.replace('Recital ', 'recitals:'));
+      onResultClick(r.documentId, r.source === 'recital' ? 'recitals' : r.articleNumber);
     } else if (e.key === 'Escape') {
       onClose();
     }
@@ -154,13 +158,7 @@ export default function SearchPanel({ documents, query, onQueryChange, onResultC
                 <div
                   key={`${r.documentId}-${r.articleNumber}-${r.source}`}
                   className={`px-3 py-2.5 rounded-lg cursor-pointer text-sm transition-all duration-150 ${i === selectedIdx ? 'bg-blue-50 ring-1 ring-blue-200' : 'hover:bg-slate-50'}`}
-                  onClick={() => {
-                    if (r.source === 'recital') {
-                      onResultClick(r.documentId, 'recitals');
-                    } else {
-                      onResultClick(r.documentId, r.articleNumber);
-                    }
-                  }}
+                  onClick={() => onResultClick(r.documentId, r.source === 'recital' ? 'recitals' : r.articleNumber)}
                   onMouseEnter={() => setSelectedIdx(i)}
                 >
                   <div className="flex items-center gap-2">

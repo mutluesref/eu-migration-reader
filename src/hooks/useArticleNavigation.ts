@@ -4,7 +4,6 @@ import { useStore } from '../store';
 
 export function useArticleNavigation(documents: DocumentData[]) {
   const currentDocId = useStore(s => s.currentDocId);
-  const currentArticleNumber = useStore(s => s.currentArticleNumber);
   const goToPrevArticle = useStore(s => s.goToPrevArticle);
   const goToNextArticle = useStore(s => s.goToNextArticle);
 

@@ -30,15 +30,4 @@ export const DOC_BADGE_COLORS: Record<string, string> = {
   urfa: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
 };
 
-/** Text-only accent colors for subtle references */
-export const DOC_TEXT_COLORS: Record<string, string> = {
-  ammr: 'text-violet-600 dark:text-violet-400',
-  apr: 'text-blue-600 dark:text-blue-400',
-  rbpr: 'text-amber-600 dark:text-amber-400',
-  cfmr: 'text-red-600 dark:text-red-400',
-  eurodac: 'text-emerald-600 dark:text-emerald-400',
-  sr: 'text-cyan-600 dark:text-cyan-400',
-  qr: 'text-indigo-600 dark:text-indigo-400',
-  rcd: 'text-pink-600 dark:text-pink-400',
-  urfa: 'text-teal-600 dark:text-teal-400',
-};
+

@@ -39,9 +39,4 @@ export interface HistoryEntry {
   articleNumber: string;
 }
 
-export interface StructureEntry {
-  type: 'part' | 'chapter' | 'section';
-  label: string;
-  num: string;
-  firstArticle: string;
-}
+

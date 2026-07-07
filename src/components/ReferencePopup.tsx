@@ -1,4 +1,5 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useMemo } from 'react';
+import { splitIntoParagraphs } from '../utils/text';
 
 export interface PopupInfo {
   x: number;
@@ -23,21 +24,6 @@ interface Props {
   isTouchDevice: boolean;
 }
 
-function splitIntoParagraphs(text: string): string[] {
-  const paragraphs: string[] = [];
-  const parts = text.split('\n\n');
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (trimmed) {
-      paragraphs.push(trimmed);
-    }
-  }
-  if (paragraphs.length === 0 && text.trim()) {
-    paragraphs.push(text.trim());
-  }
-  return paragraphs;
-}
-
 function ReferencePopup({
   popup,
   popupRef,
@@ -49,7 +35,7 @@ function ReferencePopup({
   regulationNumber,
   isTouchDevice,
 }: Props) {
-  const paragraphs = splitIntoParagraphs(popup.content);
+  const paragraphs = useMemo(() => splitIntoParagraphs(popup.content), [popup.content]);
 
   // Focus the popup container on mount for keyboard accessibility
   useEffect(() => {

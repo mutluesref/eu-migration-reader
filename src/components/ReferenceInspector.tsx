@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import type { DocumentData, Article } from '../types';
-import { getRegulationNumber, getDocumentShortName } from '../data/documents';
+import { getRegulationNumber } from '../data/documents';
 import { getReverseReferences, type ReverseReference } from '../utils/reverseReferences';
 import { DOC_BADGE_COLORS } from '../constants/docColors';
+import { splitIntoParagraphs } from '../utils/text';
 
 interface Props {
   document: DocumentData;
@@ -11,22 +12,6 @@ interface Props {
   onNavigate: (docId: string, articleNumber: string) => void;
   onCompare: (docId: string, articleNumber: string) => void;
   reverseIndex: Map<string, ReverseReference[]>;
-  documents: DocumentData[];
-}
-
-function splitIntoParagraphs(text: string): string[] {
-  const paragraphs: string[] = [];
-  const parts = text.split('\n\n');
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (trimmed) {
-      paragraphs.push(trimmed);
-    }
-  }
-  if (paragraphs.length === 0 && text.trim()) {
-    paragraphs.push(text.trim());
-  }
-  return paragraphs;
 }
 
 function stripSubject(content: string, subject: string): string {
@@ -36,7 +21,7 @@ function stripSubject(content: string, subject: string): string {
   return content;
 }
 
-export default function ReferenceInspector({ document: doc, article, onClose, onNavigate, onCompare, reverseIndex, documents }: Props) {
+export default function ReferenceInspector({ document: doc, article, onClose, onNavigate, onCompare, reverseIndex }: Props) {
   const cleanContent = stripSubject(article.content, article.subject);
   const paragraphs = splitIntoParagraphs(cleanContent);
   const [copiedReg, setCopiedReg] = useState(false);
