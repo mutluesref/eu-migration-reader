@@ -358,19 +358,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     };
   }, []);
 
-  if (!article && articleNumber !== 'recitals') {
-    return (
-      <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-sm">
-        Article not found
-      </div>
-    );
-  }
-
-  if (articleNumber === 'recitals') {
-    return <RecitalView doc={doc} />;
-  }
-
-  const bookmarked = isBookmarked(doc.id, String(article!.number));
+  const bookmarked = article ? isBookmarked(doc.id, String(article.number)) : false;
   const hasNote = hasAnnotation(doc.id, articleNumber);
   const currentNote = getAnnotation(doc.id, articleNumber);
 
@@ -384,6 +372,18 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
       setTimeout(() => noteTextareaRef.current?.focus(), 100);
     }
   }, [showNoteEditor, noteText, currentNote, doc.id, articleNumber, setAnnotation]);
+
+  if (!article && articleNumber !== 'recitals') {
+    return (
+      <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-sm">
+        Article not found
+      </div>
+    );
+  }
+
+  if (articleNumber === 'recitals') {
+    return <RecitalView doc={doc} />;
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
