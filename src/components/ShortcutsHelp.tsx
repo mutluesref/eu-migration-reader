@@ -1,5 +1,4 @@
-import { memo } from 'react';
-import { useManagedFocus } from '../hooks/useManagedFocus';
+import { memo, useEffect, useRef } from 'react';
 
 interface Props {
   show: boolean;
@@ -16,7 +15,44 @@ const shortcuts = [
 ];
 
 function ShortcutsHelp({ show, onClose }: Props) {
-  const focusRef = useManagedFocus(show, { trapFocus: true });
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Focus the dialog on mount, return focus on unmount
+  useEffect(() => {
+    if (show) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      dialogRef.current?.focus();
+    } else if (previousFocusRef.current) {
+      const el = previousFocusRef.current;
+      previousFocusRef.current = null;
+      requestAnimationFrame(() => el.focus());
+    }
+  }, [show]);
+
+  // Focus trap
+  useEffect(() => {
+    if (!show || !dialogRef.current) return;
+    const container = dialogRef.current;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusable = container.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    container.addEventListener('keydown', handleKeyDown);
+    return () => container.removeEventListener('keydown', handleKeyDown);
+  }, [show]);
 
   if (!show) return null;
 
@@ -27,12 +63,12 @@ function ShortcutsHelp({ show, onClose }: Props) {
         onClick={onClose}
       />
       <div
-        ref={focusRef}
+        ref={dialogRef}
         tabIndex={-1}
-        className="relative z-10 w-full max-w-sm outline-none"
         role="dialog"
         aria-label="Keyboard shortcuts"
         aria-modal="true"
+        className="relative z-10 w-full max-w-sm outline-none"
       >
         <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-2xl border border-surface-200/60 dark:border-surface-700/60 overflow-hidden">
           <div className="px-5 pt-5 pb-4">

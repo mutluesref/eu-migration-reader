@@ -1,9 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import type { DocumentData, Article } from '../types';
 import { getRegulationNumber, getDocumentShortName } from '../data/documents';
 import { getReverseReferences, type ReverseReference } from '../utils/reverseReferences';
 import { DOC_BADGE_COLORS } from '../constants/docColors';
-import { useManagedFocus } from '../hooks/useManagedFocus';
 
 interface Props {
   document: DocumentData;
@@ -42,7 +41,20 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
   const paragraphs = splitIntoParagraphs(cleanContent);
   const [copiedReg, setCopiedReg] = useState(false);
   const [showReverse, setShowReverse] = useState(false);
-  const focusRef = useManagedFocus(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Focus the inspector on mount, return focus on unmount
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
+    containerRef.current?.focus();
+    return () => {
+      const el = previousFocusRef.current;
+      if (el) {
+        requestAnimationFrame(() => el.focus());
+      }
+    };
+  }, []);
 
   const reverseRefs = useMemo(
     () => getReverseReferences(reverseIndex, doc.id, String(article.number)),
@@ -57,7 +69,7 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
 
   return (
     <div
-      ref={focusRef}
+      ref={containerRef}
       tabIndex={-1}
       className="flex flex-col h-full outline-none"
       role="region"

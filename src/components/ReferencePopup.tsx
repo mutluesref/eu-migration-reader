@@ -1,5 +1,4 @@
-import { memo } from 'react';
-import { useManagedFocus } from '../hooks/useManagedFocus';
+import { memo, useEffect } from 'react';
 
 export interface PopupInfo {
   x: number;
@@ -51,13 +50,13 @@ function ReferencePopup({
   isTouchDevice,
 }: Props) {
   const paragraphs = splitIntoParagraphs(popup.content);
-  const managedRef = useManagedFocus(true, { trapFocus: isTouchDevice });
 
-  // Merge external popupRef with our managedRef
-  const setRefs = (el: HTMLDivElement | null) => {
-    (popupRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-    (managedRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-  };
+  // Focus the popup container on mount for keyboard accessibility
+  useEffect(() => {
+    if (popupRef.current) {
+      popupRef.current.focus();
+    }
+  }, [popupRef]);
 
   if (isTouchDevice) {
     return (
@@ -69,7 +68,7 @@ function ReferencePopup({
         />
         <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4">
           <div
-            ref={setRefs}
+            ref={popupRef as React.RefObject<HTMLDivElement>}
             role="dialog"
             aria-label={`${popup.docName} - ${popup.articleTitle}`}
             aria-modal="true"
@@ -130,7 +129,7 @@ function ReferencePopup({
         onClick={onClose}
       />
       <div
-        ref={setRefs}
+        ref={popupRef as React.RefObject<HTMLDivElement>}
         role="tooltip"
         aria-label={`${popup.docName} - ${popup.articleTitle}`}
         tabIndex={-1}
