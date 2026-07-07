@@ -46,6 +46,29 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
     [reverseIndex, doc.id, article.number]
   );
 
+  const groupedRefs = useMemo(() => {
+    const groups = new Map<string, { docName: string; refs: typeof reverseRefs }>();
+    for (const ref of reverseRefs) {
+      const existing = groups.get(ref.sourceDocId);
+      if (existing) {
+        existing.refs.push(ref);
+      } else {
+        groups.set(ref.sourceDocId, { docName: ref.sourceDocName, refs: [ref] });
+      }
+    }
+    return groups;
+  }, [reverseRefs]);
+
+  function highlightRef(snippet: string, displayText: string) {
+    const escaped = displayText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const parts = snippet.split(new RegExp(`(${escaped})`, 'gi'));
+    return parts.map((p, i) =>
+      p.toLowerCase() === displayText.toLowerCase()
+        ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-700/40 text-inherit rounded-sm px-0.5 font-medium">{p}</mark>
+        : p
+    );
+  }
+
   const copyRegNum = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedReg(true);
@@ -132,19 +155,33 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
               Referenced by ({reverseRefs.length})
             </button>
             {showReverse && (
-              <div className="mt-3 space-y-2">
-                {reverseRefs.map((ref, i) => (
-                  <div
-                    key={`${ref.sourceDocId}-${ref.sourceArticleNumber}-${i}`}
-                    className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
-                    onClick={() => onNavigate(ref.sourceDocId, ref.sourceArticleNumber)}
-                  >
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5 ${DOC_BADGE_COLORS[ref.sourceDocId] || 'bg-slate-100 text-slate-600'}`}>
-                      {ref.sourceDocName}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-slate-700 truncate">Article {ref.sourceArticleNumber} — {ref.sourceArticleTitle}</p>
-                      <p className="text-xs text-slate-400 truncate mt-0.5">"{ref.displayText}"</p>
+              <div className="mt-3 space-y-4">
+                {Array.from(groupedRefs.entries()).map(([docId, group]) => (
+                  <div key={docId}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_BADGE_COLORS[docId] || 'bg-slate-100 text-slate-600'}`}>
+                        {group.docName}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">{group.refs.length}</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {group.refs.map((ref, i) => (
+                        <div
+                          key={`${ref.sourceArticleNumber}-${i}`}
+                          className="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                          onClick={() => onNavigate(ref.sourceDocId, ref.sourceArticleNumber)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate(ref.sourceDocId, ref.sourceArticleNumber); } }}
+                        >
+                          <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Article {ref.sourceArticleNumber}{ref.sourceArticleSubject ? ` — ${ref.sourceArticleSubject}` : ''}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            {highlightRef(ref.snippet, ref.displayText)}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}

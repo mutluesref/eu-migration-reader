@@ -9,7 +9,24 @@ export interface ReverseReference {
   sourceDocName: string;
   sourceArticleNumber: string;
   sourceArticleTitle: string;
+  sourceArticleSubject: string;
   displayText: string;
+  snippet: string;
+}
+
+const SNIPPET_PADDING = 80;
+
+function extractSnippet(content: string, startIndex: number, endIndex: number): string {
+  const ctxStart = Math.max(0, startIndex - SNIPPET_PADDING);
+  const ctxEnd = Math.min(content.length, endIndex + SNIPPET_PADDING);
+  let before = '';
+  let after = '';
+  if (ctxStart > 0) before = '…';
+  before += content.slice(ctxStart, startIndex);
+  const matched = content.slice(startIndex, endIndex);
+  after += content.slice(endIndex, ctxEnd);
+  if (ctxEnd < content.length) after += '…';
+  return before + matched + after;
 }
 
 /**
@@ -30,7 +47,9 @@ export function buildReverseIndex(documents: DocumentData[]): Map<string, Revers
           sourceDocName: doc.shortName,
           sourceArticleNumber: String(article.number),
           sourceArticleTitle: article.title,
+          sourceArticleSubject: article.subject,
           displayText: ref.displayText,
+          snippet: extractSnippet(article.content, raw.startIndex, raw.endIndex),
         };
         const existing = index.get(targetKey);
         if (existing) {
