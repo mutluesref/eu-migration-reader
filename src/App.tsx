@@ -419,6 +419,7 @@ export default function App() {
           <div
             ref={articleScrollRef}
             className={`${showCompare ? 'w-1/2' : 'w-full'} overflow-y-auto custom-scrollbar relative transition-[width] duration-300`}
+            style={{ overflowAnchor: 'none' }}
             onScroll={handleScroll}
           >
             <ErrorBoundary>
