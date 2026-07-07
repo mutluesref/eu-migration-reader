@@ -351,6 +351,7 @@
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: theme('colors.surface.300') transparent;
+  overflow-anchor: none;
 }
 
 .dark .custom-scrollbar {
