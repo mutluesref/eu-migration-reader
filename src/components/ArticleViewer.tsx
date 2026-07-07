@@ -358,6 +358,13 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     };
   }, []);
 
+  useEffect(() => {
+    if (articleNumber === 'recitals') {
+      setPopup(null);
+      setActiveRefs(new Set());
+    }
+  }, [articleNumber]);
+
   if (!article && articleNumber !== 'recitals') {
     return (
       <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-sm">

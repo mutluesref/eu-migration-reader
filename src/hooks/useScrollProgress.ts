@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, type RefObject } from 'react';
+import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
 import { useStore } from '../store';
 
 export function useScrollProgress(scrollRef: RefObject<HTMLDivElement | null>) {
@@ -6,8 +6,10 @@ export function useScrollProgress(scrollRef: RefObject<HTMLDivElement | null>) {
   const currentArticleNumber = useStore(s => s.currentArticleNumber);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const isResettingRef = useRef(false);
 
   const handleScroll = useCallback(() => {
+    if (isResettingRef.current) return;
     const el = scrollRef.current;
     if (!el) return;
     const maxScroll = el.scrollHeight - el.clientHeight;
@@ -22,9 +24,11 @@ export function useScrollProgress(scrollRef: RefObject<HTMLDivElement | null>) {
 
   useEffect(() => {
     if (scrollRef.current) {
+      isResettingRef.current = true;
       scrollRef.current.scrollTop = 0;
       setScrollProgress(0);
       setShowScrollTop(false);
+      isResettingRef.current = false;
     }
   }, [currentDocId, currentArticleNumber, scrollRef]);
 

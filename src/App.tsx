@@ -119,15 +119,20 @@ export default function App() {
   const setCompareRef = useStore(s => s.setCompareRef);
   const setShowCompare = useStore(s => s.setShowCompare);
 
+  const handleCloseSearch = useCallback(() => setShowSearch(false), [setShowSearch]);
+  const handleCloseInspector = useCallback(() => setShowInspector(false), [setShowInspector]);
+  const handleClearInspectedRef = useCallback(() => setInspectedRef(null), [setInspectedRef]);
+  const handleToggleShortcuts = useCallback(() => setShowShortcuts(!showShortcuts), [showShortcuts, setShowShortcuts]);
+
   useKeyboardShortcuts({
     onToggleSearch: toggleSearch,
     onToggleSidebar: toggleSidebar,
-    onCloseSearch: () => setShowSearch(false),
-    onCloseInspector: () => setShowInspector(false),
-    onClearInspectedRef: () => setInspectedRef(null),
+    onCloseSearch: handleCloseSearch,
+    onCloseInspector: handleCloseInspector,
+    onClearInspectedRef: handleClearInspectedRef,
     onPrevArticle: handlePrevArticle,
     onNextArticle: handleNextArticle,
-    onToggleShortcuts: () => setShowShortcuts(!showShortcuts),
+    onToggleShortcuts: handleToggleShortcuts,
   });
 
   useEffect(() => {
