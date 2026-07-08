@@ -2,9 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useStore, type Theme } from '../store';
 
 function getSystemTheme(): 'light' | 'dark' {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function applyTheme(theme: Theme) {
@@ -19,9 +17,7 @@ function applyTheme(theme: Theme) {
 export default function useTheme() {
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
-  const isDark =
-    theme === 'dark' ||
-    (theme === 'system' && getSystemTheme() === 'dark');
+  const isDark = theme === 'dark' || (theme === 'system' && getSystemTheme() === 'dark');
 
   useEffect(() => {
     applyTheme(theme);
@@ -39,7 +35,7 @@ export default function useTheme() {
     (t: Theme) => {
       setTheme(t);
     },
-    [setTheme]
+    [setTheme],
   );
 
   return { theme, setTheme: handleSetTheme, isDark };

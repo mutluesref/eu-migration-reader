@@ -54,5 +54,14 @@ export function useKeyboardShortcuts({
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onToggleSearch, onToggleSidebar, onCloseSearch, onCloseInspector, onClearInspectedRef, onPrevArticle, onNextArticle, onToggleShortcuts]);
+  }, [
+    onToggleSearch,
+    onToggleSidebar,
+    onCloseSearch,
+    onCloseInspector,
+    onClearInspectedRef,
+    onPrevArticle,
+    onNextArticle,
+    onToggleShortcuts,
+  ]);
 }

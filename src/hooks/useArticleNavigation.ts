@@ -3,13 +3,13 @@ import type { DocumentData } from '../types';
 import { useStore } from '../store';
 
 export function useArticleNavigation(documents: DocumentData[]) {
-  const currentDocId = useStore(s => s.currentDocId);
-  const goToPrevArticle = useStore(s => s.goToPrevArticle);
-  const goToNextArticle = useStore(s => s.goToNextArticle);
+  const currentDocId = useStore((s) => s.currentDocId);
+  const goToPrevArticle = useStore((s) => s.goToPrevArticle);
+  const goToNextArticle = useStore((s) => s.goToNextArticle);
 
   const currentDoc = useMemo(
-    () => documents.find(d => d.id === currentDocId),
-    [documents, currentDocId]
+    () => documents.find((d) => d.id === currentDocId),
+    [documents, currentDocId],
   );
 
   const orderedArticles = useMemo(() => {
@@ -17,7 +17,7 @@ export function useArticleNavigation(documents: DocumentData[]) {
     const articles = currentDoc.articles;
     const hasRecitals = currentDoc.recitals && currentDoc.recitals.length > 0;
     const articleNums = articles
-      .map(a => String(a.number))
+      .map((a) => String(a.number))
       .sort((a, b) => {
         const na = parseInt(a, 10);
         const nb = parseInt(b, 10);

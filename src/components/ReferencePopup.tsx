@@ -80,7 +80,10 @@ function ReferencePopup({
             <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-4">
               <div className="space-y-3">
                 {paragraphs.map((p, i) => (
-                  <p key={i} className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+                  <p
+                    key={i}
+                    className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed"
+                  >
                     {p}
                   </p>
                 ))}
@@ -110,10 +113,7 @@ function ReferencePopup({
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-40" onClick={onClose} />
       <div
         ref={popupRef as React.RefObject<HTMLDivElement>}
         role="tooltip"
@@ -129,7 +129,7 @@ function ReferencePopup({
           <span
             className="text-xs text-brand-600 dark:text-brand-400 font-semibold uppercase tracking-wider truncate"
             title="Right-click to copy"
-            onContextMenu={e => {
+            onContextMenu={(e) => {
               e.preventDefault();
               copyRegNum(regulationNumber);
             }}

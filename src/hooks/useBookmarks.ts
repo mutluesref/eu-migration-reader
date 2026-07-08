@@ -9,7 +9,7 @@ export default function useBookmarks() {
   const isBookmarked = useCallback(
     (docId: string, articleNumber: string) =>
       bookmarks.some((b) => b.docId === docId && b.articleNumber === articleNumber),
-    [bookmarks]
+    [bookmarks],
   );
 
   return { bookmarks, addBookmark, removeBookmark, isBookmarked };

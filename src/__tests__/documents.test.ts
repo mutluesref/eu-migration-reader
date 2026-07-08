@@ -18,8 +18,8 @@ describe('documents', () => {
   it('returns document by id', () => {
     const doc = getDocument('ammr');
     expect(doc).toBeDefined();
-    expect(doc.id).toBe('ammr');
-    expect(doc.articles.length).toBe(85);
+    expect(doc!.id).toBe('ammr');
+    expect(doc!.articles.length).toBe(85);
   });
 
   it('returns undefined for invalid id', () => {

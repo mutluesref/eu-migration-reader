@@ -29,5 +29,3 @@ export const DOC_BADGE_COLORS: Record<string, string> = {
   rcd: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
   urfa: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
 };
-
-

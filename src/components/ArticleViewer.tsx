@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import type { DocumentData, Reference } from '../types';
-import { detectReferences, createReference, isExternalDoc, getExternalCelex, getExternalName, getEurlexUrl } from '../utils/referenceDetection';
+import {
+  detectReferences,
+  createReference,
+  isExternalDoc,
+  getExternalCelex,
+  getExternalName,
+  getEurlexUrl,
+} from '../utils/referenceDetection';
 import { getDocumentShortName, getRegulationNumber } from '../data/documents';
 import { useStore } from '../store';
 import useBookmarks from '../hooks/useBookmarks';
@@ -10,6 +17,7 @@ import RecitalView from './RecitalView';
 import ReferencePopup from './ReferencePopup';
 import type { PopupInfo } from './ReferencePopup';
 import { splitIntoParagraphs } from '../utils/text';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface Props {
   document: DocumentData;
@@ -82,7 +90,13 @@ function getRefShortName(docId: string): string {
   return getDocumentShortName(docId);
 }
 
-export default function ArticleViewer({ document: doc, articleNumber, documents: allDocs, onReferenceClick, onReferenceNavigate }: Props) {
+export default function ArticleViewer({
+  document: doc,
+  articleNumber,
+  documents: allDocs,
+  onReferenceClick,
+  onReferenceNavigate,
+}: Props) {
   const fontSize = useStore((s) => s.fontSize);
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
   const { getAnnotation, hasAnnotation, setAnnotation } = useAnnotations();
@@ -96,15 +110,18 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
   const [noteText, setNoteText] = useState('');
   const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const copyRegNum = useCallback((text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedReg(true);
-    setTimeout(() => setCopiedReg(false), 1500);
+  const copyRegNum = useCallback(async (text: string) => {
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedReg(true);
+      setTimeout(() => setCopiedReg(false), 1500);
+    }
   }, []);
 
-  const article = articleNumber === 'recitals'
-    ? null
-    : doc.articles.find(a => String(a.number) === articleNumber);
+  const article =
+    articleNumber === 'recitals'
+      ? null
+      : doc.articles.find((a) => String(a.number) === articleNumber);
 
   const bodyContent = useMemo(() => {
     if (!article) return '';
@@ -123,7 +140,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
 
   const paragraphSegments = useMemo(() => {
     if (!article) return [];
-    return paragraphs.map(p => ({
+    return paragraphs.map((p) => ({
       text: p,
       segments: parseParagraphForSegments(p, doc.id),
     }));
@@ -134,32 +151,39 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     return paragraphs.map((p, i) => getIndentLevel(p, i, paragraphs));
   }, [article, paragraphs]);
 
-  const findArticleContent = useCallback((docId: string, articleNum: string): { content: string; title: string; subject: string; docName: string } | null => {
-    const d = allDocs.find(x => x.id === docId);
-    if (!d) return null;
-    const a = d.articles.find(x => String(x.number) === articleNum);
-    if (!a) return null;
-    const clean = a.subject && a.content.startsWith(a.subject + '\n')
-      ? a.content.substring(a.subject.length + 1)
-      : a.content;
-    return { content: clean, title: a.title, subject: a.subject, docName: d.shortName };
-  }, [allDocs]);
+  const findArticleContent = useCallback(
+    (
+      docId: string,
+      articleNum: string,
+    ): { content: string; title: string; subject: string; docName: string } | null => {
+      const d = allDocs.find((x) => x.id === docId);
+      if (!d) return null;
+      const a = d.articles.find((x) => String(x.number) === articleNum);
+      if (!a) return null;
+      const clean =
+        a.subject && a.content.startsWith(a.subject + '\n')
+          ? a.content.substring(a.subject.length + 1)
+          : a.content;
+      return { content: clean, title: a.title, subject: a.subject, docName: d.shortName };
+    },
+    [allDocs],
+  );
 
   const [isTouchDevice, setIsTouchDevice] = useState(false);
-  
+
   useEffect(() => {
     const handleTouchStart = () => setIsTouchDevice(true);
     const handleMouseDown = () => setIsTouchDevice(false);
-    
+
     window.addEventListener('touchstart', handleTouchStart, { once: true, passive: true });
     window.addEventListener('mousedown', handleMouseDown);
-    
+
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('mousedown', handleMouseDown);
     };
   }, []);
-  
+
   const mouseOverRef = useRef(false);
   const mouseOverPopup = useRef(false);
   const currentRefEl = useRef<HTMLElement | null>(null);
@@ -202,111 +226,126 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, [isTouchDevice, popup, isMouseNearRef, isMouseNearPopup]);
 
-  const handleMouseEnterRef = useCallback((ref: Reference, e: React.MouseEvent) => {
-    if (isTouchDevice) return;
-    currentRefEl.current = e.target as HTMLElement;
-    mouseOverRef.current = true;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    let found = !isExternalDoc(ref.documentId) ? findArticleContent(ref.documentId, ref.articleNumber) : null;
-    if (found) {
-      setPopup({
-        x: rect.left,
-        y: rect.bottom + 12,
-        content: found.content,
-        docName: found.docName,
-        articleTitle: found.title,
-        subject: found.subject,
-        refDocId: ref.documentId,
-        refArticleNumber: ref.articleNumber,
-      });
-    } else {
-      const celex = isExternalDoc(ref.documentId) ? getExternalCelex(ref.documentId) : '';
-      const extName = celex ? getExternalName(celex) : undefined;
-      const docName = extName
-        ? `${extName} (${celex.substring(1, 5)}/${parseInt(celex.substring(6))})`
-        : getDocumentShortName(ref.documentId);
-      setPopup({
-        x: rect.left,
-        y: rect.bottom + 12,
-        content: celex ? `External reference — ${docName}` : `Article ${ref.articleNumber}`,
-        docName,
-        articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
-        subject: '',
-        refDocId: ref.documentId,
-        refArticleNumber: ref.articleNumber,
-      });
-    }
-  }, [findArticleContent, isTouchDevice]);
+  const handleMouseEnterRef = useCallback(
+    (ref: Reference, e: React.MouseEvent) => {
+      if (isTouchDevice) return;
+      currentRefEl.current = e.target as HTMLElement;
+      mouseOverRef.current = true;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      const found = !isExternalDoc(ref.documentId)
+        ? findArticleContent(ref.documentId, ref.articleNumber)
+        : null;
+      if (found) {
+        setPopup({
+          x: rect.left,
+          y: rect.bottom + 12,
+          content: found.content,
+          docName: found.docName,
+          articleTitle: found.title,
+          subject: found.subject,
+          refDocId: ref.documentId,
+          refArticleNumber: ref.articleNumber,
+        });
+      } else {
+        const celex = isExternalDoc(ref.documentId) ? getExternalCelex(ref.documentId) : '';
+        const extName = celex ? getExternalName(celex) : undefined;
+        const docName = extName
+          ? `${extName} (${celex.substring(1, 5)}/${parseInt(celex.substring(6))})`
+          : getDocumentShortName(ref.documentId);
+        setPopup({
+          x: rect.left,
+          y: rect.bottom + 12,
+          content: celex ? `External reference — ${docName}` : `Article ${ref.articleNumber}`,
+          docName,
+          articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
+          subject: '',
+          refDocId: ref.documentId,
+          refArticleNumber: ref.articleNumber,
+        });
+      }
+    },
+    [findArticleContent, isTouchDevice],
+  );
 
   const handleMouseLeaveRef = useCallback(() => {
     if (isTouchDevice) return;
     mouseOverRef.current = false;
   }, [isTouchDevice]);
 
-  const handleClickRef = useCallback((ref: Reference) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  const handleClickRef = useCallback(
+    (ref: Reference) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    if (!isTouchDevice) {
-      setPopup(null);
-      setActiveRefs(prev => new Set(prev).add(`${ref.documentId}:${ref.articleNumber}`));
-      onReferenceClick(ref.documentId, ref.articleNumber);
-      return;
-    }
+      if (!isTouchDevice) {
+        setPopup(null);
+        setActiveRefs((prev) => new Set(prev).add(`${ref.documentId}:${ref.articleNumber}`));
+        onReferenceClick(ref.documentId, ref.articleNumber);
+        return;
+      }
 
-    const rect = document.querySelector(`[data-ref="${ref.documentId}:${ref.articleNumber}"]`)?.getBoundingClientRect();
-    let found = !isExternalDoc(ref.documentId) ? findArticleContent(ref.documentId, ref.articleNumber) : null;
-    if (found) {
-      setPopup({
-        x: rect?.left ?? 0,
-        y: (rect?.bottom ?? 0) + 12,
-        content: found.content,
-        docName: found.docName,
-        articleTitle: found.title,
-        subject: found.subject,
-        refDocId: ref.documentId,
-        refArticleNumber: ref.articleNumber,
-      });
-    } else {
-      const celex = isExternalDoc(ref.documentId) ? getExternalCelex(ref.documentId) : '';
-      const extName = celex ? getExternalName(celex) : undefined;
-      const docName = extName
-        ? `${extName} (${celex.substring(1, 5)}/${parseInt(celex.substring(6))})`
-        : getDocumentShortName(ref.documentId);
-      setPopup({
-        x: rect?.left ?? 0,
-        y: (rect?.bottom ?? 0) + 12,
-        content: celex ? `External reference — ${docName}` : `Article ${ref.articleNumber}`,
-        docName,
-        articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
-        subject: '',
-        refDocId: ref.documentId,
-        refArticleNumber: ref.articleNumber,
-      });
-    }
-  }, [findArticleContent, isTouchDevice, onReferenceClick]);
+      const rect = document
+        .querySelector(`[data-ref="${ref.documentId}:${ref.articleNumber}"]`)
+        ?.getBoundingClientRect();
+      const found = !isExternalDoc(ref.documentId)
+        ? findArticleContent(ref.documentId, ref.articleNumber)
+        : null;
+      if (found) {
+        setPopup({
+          x: rect?.left ?? 0,
+          y: (rect?.bottom ?? 0) + 12,
+          content: found.content,
+          docName: found.docName,
+          articleTitle: found.title,
+          subject: found.subject,
+          refDocId: ref.documentId,
+          refArticleNumber: ref.articleNumber,
+        });
+      } else {
+        const celex = isExternalDoc(ref.documentId) ? getExternalCelex(ref.documentId) : '';
+        const extName = celex ? getExternalName(celex) : undefined;
+        const docName = extName
+          ? `${extName} (${celex.substring(1, 5)}/${parseInt(celex.substring(6))})`
+          : getDocumentShortName(ref.documentId);
+        setPopup({
+          x: rect?.left ?? 0,
+          y: (rect?.bottom ?? 0) + 12,
+          content: celex ? `External reference — ${docName}` : `Article ${ref.articleNumber}`,
+          docName,
+          articleTitle: celex ? docName : `Article ${ref.articleNumber}`,
+          subject: '',
+          refDocId: ref.documentId,
+          refArticleNumber: ref.articleNumber,
+        });
+      }
+    },
+    [findArticleContent, isTouchDevice, onReferenceClick],
+  );
 
   const handlePopupInspect = useCallback(() => {
     if (!popup) return;
     setPopup(null);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setActiveRefs(prev => new Set(prev).add(`${popup.refDocId}:${popup.refArticleNumber}`));
+    setActiveRefs((prev) => new Set(prev).add(`${popup.refDocId}:${popup.refArticleNumber}`));
     onReferenceClick(popup.refDocId, popup.refArticleNumber);
   }, [popup, onReferenceClick]);
 
-  const handleDoubleClickRef = useCallback((ref: Reference) => {
-    setPopup(null);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (isExternalDoc(ref.documentId)) {
-      const url = getEurlexUrl(getExternalCelex(ref.documentId));
-      const win = window.open(url, '_blank', 'noopener,noreferrer');
-      if (!win) {
-        window.location.href = url;
+  const handleDoubleClickRef = useCallback(
+    (ref: Reference) => {
+      setPopup(null);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (isExternalDoc(ref.documentId)) {
+        const url = getEurlexUrl(getExternalCelex(ref.documentId));
+        const win = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!win) {
+          window.location.href = url;
+        }
+        return;
       }
-      return;
-    }
-    onReferenceNavigate(ref.documentId, ref.articleNumber);
-  }, [onReferenceNavigate]);
+      onReferenceNavigate(ref.documentId, ref.articleNumber);
+    },
+    [onReferenceNavigate],
+  );
 
   const handleToggleBookmark = useCallback(() => {
     if (!article) return;
@@ -387,29 +426,51 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         {showNoteEditor && (
           <div className="px-4 sm:px-6 py-3 bg-amber-50 dark:bg-amber-900/10 border-b border-amber-200 dark:border-amber-800/30">
             <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <svg
+                className="w-4 h-4 text-amber-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
               </svg>
-              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">Personal Note</span>
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                Personal Note
+              </span>
             </div>
             <textarea
               ref={noteTextareaRef}
               value={noteText}
-              onChange={e => setNoteText(e.target.value)}
+              onChange={(e) => setNoteText(e.target.value)}
               placeholder="Add a note about this article..."
               className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-700 border border-amber-200 dark:border-amber-700/50 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent placeholder:text-amber-300 dark:placeholder:text-amber-600"
               rows={3}
             />
             <div className="flex items-center justify-between mt-2">
               <button
-                onClick={() => { if (noteText.trim()) setAnnotation(doc.id, articleNumber, noteText); else { setAnnotation(doc.id, articleNumber, ''); } setShowNoteEditor(false); }}
+                onClick={() => {
+                  if (noteText.trim()) setAnnotation(doc.id, articleNumber, noteText);
+                  else {
+                    setAnnotation(doc.id, articleNumber, '');
+                  }
+                  setShowNoteEditor(false);
+                }}
                 className="text-xs font-medium px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
               >
                 Save note
               </button>
               {currentNote && (
                 <button
-                  onClick={() => { setAnnotation(doc.id, articleNumber, ''); setNoteText(''); setShowNoteEditor(false); }}
+                  onClick={() => {
+                    setAnnotation(doc.id, articleNumber, '');
+                    setNoteText('');
+                    setShowNoteEditor(false);
+                  }}
                   className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 transition-colors"
                 >
                   Delete note
@@ -422,7 +483,9 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         {/* Existing note display */}
         {!showNoteEditor && hasNote && (
           <div className="px-4 sm:px-6 py-3 bg-amber-50/50 dark:bg-amber-900/5 border-b border-amber-100 dark:border-amber-800/20">
-            <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">{currentNote}</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
+              {currentNote}
+            </p>
           </div>
         )}
 
@@ -445,7 +508,7 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
                       role="link"
                       tabIndex={0}
                       aria-label={`Reference to ${getRefShortName(ref.documentId)}, Article ${ref.articleNumber}`}
-                      onMouseEnter={e => handleMouseEnterRef(ref, e)}
+                      onMouseEnter={(e) => handleMouseEnterRef(ref, e)}
                       onMouseLeave={handleMouseLeaveRef}
                       onClick={() => handleClickRef(ref)}
                       onDoubleClick={() => handleDoubleClickRef(ref)}
@@ -467,7 +530,8 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
 
           <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <p className="text-xs text-slate-400 dark:text-slate-500">
-              <span className="font-medium">Tip:</span> Click a reference to inspect it in the side panel. Double-click to navigate directly.
+              <span className="font-medium">Tip:</span> Click a reference to inspect it in the side
+              panel. Double-click to navigate directly.
             </p>
             <button
               onClick={handleToggleBookmark}
@@ -484,8 +548,13 @@ export default function ArticleViewer({ document: doc, articleNumber, documents:
         <ReferencePopup
           popup={popup}
           popupRef={popupRef}
-          onMouseEnter={() => { mouseOverPopup.current = true; if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
-          onMouseLeave={() => { mouseOverPopup.current = false; }}
+          onMouseEnter={() => {
+            mouseOverPopup.current = true;
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          }}
+          onMouseLeave={() => {
+            mouseOverPopup.current = false;
+          }}
           onClickInspect={handlePopupInspect}
           onClose={() => {
             setPopup(null);

@@ -3,8 +3,8 @@ import type { DocumentData } from '../types';
 export type ContentType = 'articles' | 'recitals' | 'both';
 
 export interface SearchFilters {
-  documentId?: string;       // Filter to specific document
-  contentType: ContentType;  // Articles, recitals, or both
+  documentId?: string;
+  contentType: ContentType;
 }
 
 export interface SearchResult {
@@ -21,6 +21,55 @@ const DEFAULT_FILTERS: SearchFilters = {
   contentType: 'articles',
 };
 
+function scoreArticle(
+  article: { title: string; subject: string; content: string; number: number | string },
+  queryLower: string,
+): number {
+  const titleLower = article.title.toLowerCase();
+  const subjectLower = article.subject.toLowerCase();
+  const contentLower = article.content.toLowerCase();
+  const numberStr = String(article.number);
+
+  let score = 0;
+
+  if (numberStr === queryLower || `article ${numberStr}` === queryLower) {
+    score += 100;
+  }
+  if (titleLower.includes(queryLower)) {
+    score += 50;
+  }
+  if (subjectLower.includes(queryLower)) {
+    score += 30;
+  }
+  if (contentLower.includes(queryLower)) {
+    score += 10;
+  }
+
+  return score;
+}
+
+function extractSnippet(
+  title: string,
+  subject: string,
+  content: string,
+  queryLower: string,
+): string {
+  const searchSpace = `${title}\n${subject}\n${content}`;
+  const searchSpaceLower = searchSpace.toLowerCase();
+  const ssIdx = searchSpaceLower.indexOf(queryLower);
+
+  if (ssIdx !== -1) {
+    const start = Math.max(0, ssIdx - 80);
+    const end = Math.min(searchSpace.length, ssIdx + queryLower.length + 80);
+    let s = '';
+    if (start > 0) s += '...';
+    s += searchSpace.substring(start, end);
+    if (end < searchSpace.length) s += '...';
+    return s;
+  }
+  return content.substring(0, 150) + '...';
+}
+
 export function searchDocuments(
   documents: DocumentData[],
   query: string,
@@ -31,11 +80,10 @@ export function searchDocuments(
 
   const results: SearchResult[] = [];
   const docs = filters.documentId
-    ? documents.filter(d => d.id === filters.documentId)
+    ? documents.filter((d) => d.id === filters.documentId)
     : documents;
 
   for (const doc of docs) {
-    // Search articles
     if (filters.contentType === 'articles' || filters.contentType === 'both') {
       for (const article of doc.articles) {
         const score = scoreArticle(article, q);
@@ -53,7 +101,6 @@ export function searchDocuments(
       }
     }
 
-    // Search recitals
     if (filters.contentType === 'recitals' || filters.contentType === 'both') {
       for (const recital of doc.recitals) {
         const text = recital.text;
@@ -95,45 +142,4 @@ export function searchDocuments(
 
   results.sort((a, b) => b.score - a.score);
   return results;
-}
-
-function scoreArticle(article: { title: string; subject: string; content: string; number: number | string }, queryLower: string): number {
-  const titleLower = article.title.toLowerCase();
-  const subjectLower = article.subject.toLowerCase();
-  const contentLower = article.content.toLowerCase();
-  const numberStr = String(article.number);
-
-  let score = 0;
-
-  if (numberStr === queryLower || `article ${numberStr}` === queryLower) {
-    score += 100;
-  }
-  if (titleLower.includes(queryLower)) {
-    score += 50;
-  }
-  if (subjectLower.includes(queryLower)) {
-    score += 30;
-  }
-  if (contentLower.includes(queryLower)) {
-    score += 10;
-  }
-
-  return score;
-}
-
-function extractSnippet(title: string, subject: string, content: string, queryLower: string): string {
-  const searchSpace = `${title}\n${subject}\n${content}`;
-  const searchSpaceLower = searchSpace.toLowerCase();
-  const ssIdx = searchSpaceLower.indexOf(queryLower);
-
-  if (ssIdx !== -1) {
-    const start = Math.max(0, ssIdx - 80);
-    const end = Math.min(searchSpace.length, ssIdx + queryLower.length + 80);
-    let s = '';
-    if (start > 0) s += '...';
-    s += searchSpace.substring(start, end);
-    if (end < searchSpace.length) s += '...';
-    return s;
-  }
-  return content.substring(0, 150) + '...';
 }

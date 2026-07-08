@@ -4,6 +4,7 @@ import { getRegulationNumber } from '../data/documents';
 import { getReverseReferences, type ReverseReference } from '../utils/reverseReferences';
 import { DOC_BADGE_COLORS } from '../constants/docColors';
 import { splitIntoParagraphs } from '../utils/text';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface Props {
   document: DocumentData;
@@ -21,7 +22,14 @@ function stripSubject(content: string, subject: string): string {
   return content;
 }
 
-export default function ReferenceInspector({ document: doc, article, onClose, onNavigate, onCompare, reverseIndex }: Props) {
+export default function ReferenceInspector({
+  document: doc,
+  article,
+  onClose,
+  onNavigate,
+  onCompare,
+  reverseIndex,
+}: Props) {
   const cleanContent = stripSubject(article.content, article.subject);
   const paragraphs = splitIntoParagraphs(cleanContent);
   const [copiedReg, setCopiedReg] = useState(false);
@@ -43,7 +51,7 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
 
   const reverseRefs = useMemo(
     () => getReverseReferences(reverseIndex, doc.id, String(article.number)),
-    [reverseIndex, doc.id, article.number]
+    [reverseIndex, doc.id, article.number],
   );
 
   const groupedRefs = useMemo(() => {
@@ -63,16 +71,25 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
     const escaped = displayText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const parts = snippet.split(new RegExp(`(${escaped})`, 'gi'));
     return parts.map((p, i) =>
-      p.toLowerCase() === displayText.toLowerCase()
-        ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-700/40 text-inherit rounded-sm px-0.5 font-medium">{p}</mark>
-        : p
+      p.toLowerCase() === displayText.toLowerCase() ? (
+        <mark
+          key={i}
+          className="bg-yellow-200 dark:bg-yellow-700/40 text-inherit rounded-sm px-0.5 font-medium"
+        >
+          {p}
+        </mark>
+      ) : (
+        p
+      ),
     );
   }
 
-  const copyRegNum = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedReg(true);
-    setTimeout(() => setCopiedReg(false), 1500);
+  const copyRegNum = async (text: string) => {
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedReg(true);
+      setTimeout(() => setCopiedReg(false), 1500);
+    }
   };
 
   return (
@@ -89,12 +106,16 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
             <span
               className="cursor-context-menu"
               title="Right-click to copy"
-              onContextMenu={e => {
+              onContextMenu={(e) => {
                 e.preventDefault();
                 copyRegNum(getRegulationNumber(doc.id));
               }}
-            >{doc.shortName}</span>
-            <span className="text-[10px] text-blue-400 font-normal">{getRegulationNumber(doc.id)}</span>
+            >
+              {doc.shortName}
+            </span>
+            <span className="text-[10px] text-blue-400 font-normal">
+              {getRegulationNumber(doc.id)}
+            </span>
             {copiedReg && <span className="text-[10px] text-emerald-600 font-medium">Copied!</span>}
           </p>
           <p className="text-sm font-medium text-slate-700 truncate mt-0.5">{article.title}</p>
@@ -109,7 +130,12 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
             title="Compare side by side"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+              />
             </svg>
           </button>
           <button
@@ -118,12 +144,22 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
             title="Open in main view"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
             </svg>
           </button>
           <button onClick={onClose} className="btn-icon">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -148,9 +184,16 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
             >
               <svg
                 className={`w-3 h-3 transition-transform ${showReverse ? 'rotate-90' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
               Referenced by ({reverseRefs.length})
             </button>
@@ -159,10 +202,14 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
                 {Array.from(groupedRefs.entries()).map(([docId, group]) => (
                   <div key={docId}>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_BADGE_COLORS[docId] || 'bg-slate-100 text-slate-600'}`}>
+                      <span
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${DOC_BADGE_COLORS[docId] || 'bg-slate-100 text-slate-600'}`}
+                      >
                         {group.docName}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-mono">{group.refs.length}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {group.refs.length}
+                      </span>
                     </div>
                     <div className="space-y-1.5">
                       {group.refs.map((ref, i) => (
@@ -172,10 +219,16 @@ export default function ReferenceInspector({ document: doc, article, onClose, on
                           onClick={() => onNavigate(ref.sourceDocId, ref.sourceArticleNumber)}
                           role="button"
                           tabIndex={0}
-                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate(ref.sourceDocId, ref.sourceArticleNumber); } }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              onNavigate(ref.sourceDocId, ref.sourceArticleNumber);
+                            }
+                          }}
                         >
                           <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Article {ref.sourceArticleNumber}{ref.sourceArticleSubject ? ` — ${ref.sourceArticleSubject}` : ''}
+                            Article {ref.sourceArticleNumber}
+                            {ref.sourceArticleSubject ? ` — ${ref.sourceArticleSubject}` : ''}
                           </p>
                           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             {highlightRef(ref.snippet, ref.displayText)}

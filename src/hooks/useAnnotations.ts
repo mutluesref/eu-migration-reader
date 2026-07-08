@@ -2,16 +2,16 @@ import { useCallback } from 'react';
 import { useStore } from '../store';
 
 export function useAnnotations() {
-  const annotations = useStore(s => s.annotations);
-  const setAnnotation = useStore(s => s.setAnnotation);
-  const removeAnnotation = useStore(s => s.removeAnnotation);
+  const annotations = useStore((s) => s.annotations);
+  const setAnnotation = useStore((s) => s.setAnnotation);
+  const removeAnnotation = useStore((s) => s.removeAnnotation);
 
   const getAnnotation = useCallback(
     (docId: string, articleNumber: string): string => {
       const key = `${docId}:${articleNumber}`;
       return annotations[key]?.text ?? '';
     },
-    [annotations]
+    [annotations],
   );
 
   const hasAnnotation = useCallback(
@@ -19,7 +19,7 @@ export function useAnnotations() {
       const key = `${docId}:${articleNumber}`;
       return !!annotations[key]?.text;
     },
-    [annotations]
+    [annotations],
   );
 
   return { annotations, getAnnotation, hasAnnotation, setAnnotation, removeAnnotation };

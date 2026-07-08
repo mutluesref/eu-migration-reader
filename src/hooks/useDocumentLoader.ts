@@ -1,29 +1,17 @@
-import { useState, useEffect, useMemo } from 'react';
-import type { DocumentData } from '../types';
+import { useMemo } from 'react';
 import { getAllDocuments } from '../data/documents';
 import { useStore } from '../store';
-import { buildReverseIndex, type ReverseReference } from '../utils/reverseReferences';
+import { buildReverseIndex } from '../utils/reverseReferences';
+
+const allDocuments = getAllDocuments();
+const allReverseIndex = buildReverseIndex(allDocuments);
 
 export function useDocumentLoader() {
-  const currentDocId = useStore(s => s.currentDocId);
-  const [documents, setDocuments] = useState<DocumentData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const currentDocId = useStore((s) => s.currentDocId);
 
-  const currentDoc = useMemo(
-    () => documents.find(d => d.id === currentDocId),
-    [documents, currentDocId]
-  );
+  const currentDoc = useMemo(() => allDocuments.find((d) => d.id === currentDocId), [currentDocId]);
 
-  const reverseIndex = useMemo(
-    () => documents.length > 0 ? buildReverseIndex(documents) : new Map<string, ReverseReference[]>(),
-    [documents]
-  );
+  const reverseIndex = useMemo(() => allReverseIndex, []);
 
-  useEffect(() => {
-    const docs = getAllDocuments();
-    setDocuments(docs);
-    setLoading(false);
-  }, []);
-
-  return { documents, loading, currentDoc, reverseIndex };
+  return { documents: allDocuments, loading: false, currentDoc, reverseIndex };
 }

@@ -38,5 +38,3 @@ export interface HistoryEntry {
   documentId: string;
   articleNumber: string;
 }
-
-

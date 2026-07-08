@@ -24,7 +24,7 @@ function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNo
           <span
             className="text-[10px] text-surface-400 dark:text-surface-500 font-mono cursor-context-menu"
             title="Right-click to copy"
-            onContextMenu={e => {
+            onContextMenu={(e) => {
               e.preventDefault();
               onCopyReg(regNumber);
             }}
@@ -32,7 +32,9 @@ function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNo
             {regNumber}
           </span>
           {copiedReg && (
-            <span className="text-[10px] text-accent-emerald font-medium animate-fade-in">Copied!</span>
+            <span className="text-[10px] text-accent-emerald font-medium animate-fade-in">
+              Copied!
+            </span>
           )}
           <div className="flex-1" />
           <button
@@ -40,12 +42,22 @@ function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNo
             className={`p-1.5 rounded-lg transition-colors ${hasNote ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'text-surface-400 hover:text-surface-600 hover:bg-surface-100 dark:hover:bg-surface-800'}`}
             title={hasNote ? 'Edit note' : 'Add note'}
           >
-            <svg className="w-4 h-4" fill={hasNote ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <svg
+              className="w-4 h-4"
+              fill={hasNote ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
           </button>
         </div>
-        
+
         {(article.part || article.chapter || article.section) && (
           <div className="flex items-center gap-2 text-[11px] text-surface-400 dark:text-surface-500 mb-2">
             {article.part && (
@@ -63,7 +75,9 @@ function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNo
             )}
             {article.section && (
               <>
-                {(article.part || article.chapter) && <span className="text-surface-300 dark:text-surface-600">›</span>}
+                {(article.part || article.chapter) && (
+                  <span className="text-surface-300 dark:text-surface-600">›</span>
+                )}
                 <span className="font-medium text-surface-500 dark:text-surface-400">
                   {article.section.replace(/^(\w+):\s*/, '§ $1 — ')}
                 </span>
@@ -71,11 +85,11 @@ function ArticleHeader({ doc, article, copiedReg, onCopyReg, hasNote, onToggleNo
             )}
           </div>
         )}
-        
+
         <h2 className="text-[1.625rem] font-bold text-surface-900 dark:text-surface-50 tracking-tight leading-tight">
           {article.title}
         </h2>
-        
+
         {article.subject && (
           <p className="text-sm font-medium text-surface-500 dark:text-surface-400 mt-2 leading-relaxed">
             {article.subject}

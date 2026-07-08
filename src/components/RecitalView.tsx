@@ -30,7 +30,7 @@ function RecitalView({ doc }: Props) {
           </p>
         </div>
         <div className="px-5 sm:px-6 py-5 space-y-4">
-          {doc.recitals.map(recital => (
+          {doc.recitals.map((recital) => (
             <div
               key={recital.number}
               className="flex gap-3 text-sm leading-relaxed text-surface-600 dark:text-surface-400"

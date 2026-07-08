@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { detectReferences, isExternalDoc, getExternalCelex, getEurlexUrl, createReference } from '../utils/referenceDetection';
+import {
+  detectReferences,
+  isExternalDoc,
+  getExternalCelex,
+  getEurlexUrl,
+  createReference,
+} from '../utils/referenceDetection';
 
 describe('referenceDetection', () => {
   describe('isExternalDoc', () => {
@@ -53,7 +59,7 @@ describe('referenceDetection', () => {
     it('detects external document references', () => {
       const refs = detectReferences('GDPR');
       expect(refs.length).toBeGreaterThanOrEqual(1);
-      expect(refs.some(r => r.documentId === 'ext:32016R0679')).toBe(true);
+      expect(refs.some((r) => r.documentId === 'ext:32016R0679')).toBe(true);
     });
 
     it('returns empty for text with no references', () => {

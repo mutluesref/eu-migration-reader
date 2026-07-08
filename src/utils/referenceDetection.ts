@@ -1,16 +1,23 @@
 import type { Reference } from '../types';
 
 const EXCLUDED_TERMS = [
-  'TFEU', 'TEU', 'Charter', 'Geneva Convention',
-  'Protocol No', 'Protocol on', 'Agreement between',
+  'TFEU',
+  'TEU',
+  'Charter',
+  'Geneva Convention',
+  'Protocol No',
+  'Protocol on',
+  'Agreement between',
 ];
 
 const EXCLUDED_CELEX = [
-  '32013R0604', '32013R0603',
+  '32013R0604',
+  '32013R0603',
   '32011R0182',
   '32022R0922',
   '32011L0095',
-  '32013L0032', '32013L0033',
+  '32013L0032',
+  '32013L0033',
 ];
 
 const CELEX_TO_DOC: Record<string, string> = {
@@ -78,7 +85,14 @@ const REGULATION_KEYWORDS: [string, string[]][] = [
   ['sr', ['Screening Regulation']],
   ['qr', ['Qualification Regulation']],
   ['rcd', ['Reception Conditions Directive']],
-  ['urfa', ['Union Resettlement and Humanitarian Admission Framework', 'Union Framework', 'Union Resettlement Framework']],
+  [
+    'urfa',
+    [
+      'Union Resettlement and Humanitarian Admission Framework',
+      'Union Framework',
+      'Union Resettlement Framework',
+    ],
+  ],
   ['ext:32021R2303', ['EU Asylum Agency Regulation', 'EUAA Regulation']],
   ['ext:32021R1147', ['AMIF Regulation', 'Asylum Migration Integration Fund Regulation']],
   ['ext:32021R1060', ['Common Provisions Regulation', 'CPR Regulation']],
@@ -139,7 +153,9 @@ export function getEurlexUrl(celex: string): string {
 
 function lookupCelexRef(text: string): string | null {
   // (EU) YYYY/NNNN or (EU, Euratom) YYYY/NNNN
-  const m1 = text.match(/((?:Regulations?|Directive)\s+)?\((?:EU|EU, Euratom)\)\s*(\d{4})\/(\d{1,6})/i);
+  const m1 = text.match(
+    /((?:Regulations?|Directive)\s+)?\((?:EU|EU, Euratom)\)\s*(\d{4})\/(\d{1,6})/i,
+  );
   if (m1) {
     const id = lookupDocId(m1[2], m1[3]);
     if (id) return id;
@@ -153,7 +169,11 @@ function lookupCelexRef(text: string): string | null {
   return null;
 }
 
-function findDocBySurroundingText(text: string, center: number, range: number = 200): string | null {
+function findDocBySurroundingText(
+  text: string,
+  center: number,
+  range: number = 200,
+): string | null {
   const afterText = text.substring(center, Math.min(text.length, center + 120));
 
   // Check proximity: if "this Regulation"/"this Directive" appears closer than any CELEX ref,
@@ -194,7 +214,9 @@ function isExcluded(text: string, _matchStart: number, matchEnd: number): boolea
     if (after.includes(term)) return true;
   }
   // Check CELEX-based exclusions — try (EU) and (EC) formats
-  const m1 = after.match(/((?:Regulations?|Directive)\s+)?\((?:EU|EU, Euratom)\)\s*(\d{4})\/(\d{1,6})/i);
+  const m1 = after.match(
+    /((?:Regulations?|Directive)\s+)?\((?:EU|EU, Euratom)\)\s*(\d{4})\/(\d{1,6})/i,
+  );
   if (m1) {
     const celex = celexFromRef(m1[0]);
     if (celex && EXCLUDED_CELEX.includes(celex)) return true;
@@ -251,7 +273,7 @@ export function detectReferences(text: string): RawReference[] {
     const contWindow = 80;
     const remainingForCont = text.substring(
       startIdx + fullMatch.length,
-      Math.min(text.length, startIdx + fullMatch.length + contWindow)
+      Math.min(text.length, startIdx + fullMatch.length + contWindow),
     );
     const contRegex = /(?:,|\b(?:and|or|to)\b|[–—])\s*(\d+[a-z]?)/gi;
     let contMatch;
@@ -295,7 +317,8 @@ export function detectReferences(text: string): RawReference[] {
   }
 
   // Pattern 3: "in accordance with Article X" / "pursuant to Article X"
-  const prepPattern = /(?:in accordance with|pursuant to|referred to in|as referred to in|as set out in|within the meaning of|for the purposes of)\s+Article\s+(\d+[a-z]?)\s*(?:\((\d+[a-zA-Z]?)\))?/gi;
+  const prepPattern =
+    /(?:in accordance with|pursuant to|referred to in|as referred to in|as set out in|within the meaning of|for the purposes of)\s+Article\s+(\d+[a-z]?)\s*(?:\((\d+[a-zA-Z]?)\))?/gi;
   while ((match = prepPattern.exec(text)) !== null) {
     if (isExcluded(text, match.index, match.index + match[0].length)) continue;
     const articleNum = match[1];
@@ -314,14 +337,15 @@ export function detectReferences(text: string): RawReference[] {
   // Pattern 4: All (EU) YYYY/NNNN and (EC) No NNNN/YYYY references
   // Covers "Regulation (EU) 2024/1351", "Directive (EU) 2024/1346",
   // "(EU) 2024/1349", "Regulation (EC) No 1560/2003", etc.
-  const celexRefPattern = /((?:Regulations?|Directive)\s+)?\((?:EU|EU, Euratom)\)\s*(\d{4})\/(\d{1,6})/gi;
+  const celexRefPattern =
+    /((?:Regulations?|Directive)\s+)?\((?:EU|EU, Euratom)\)\s*(\d{4})\/(\d{1,6})/gi;
   while ((match = celexRefPattern.exec(text)) !== null) {
-    const [fullMatch, _typePrefix, year, num] = match;
+    const [fullMatch, , year, num] = match;
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex > match!.index
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex > match!.index,
     );
     if (alreadyCovered) continue;
 
@@ -337,12 +361,12 @@ export function detectReferences(text: string): RawReference[] {
   // (EC) No NNNN/YYYY format (number/year, reversed)
   const ecRefPattern = /((?:Regulations?|Directive)\s+)?\(EC\)\s+No\s+(\d{1,6})\/(\d{4})/gi;
   while ((match = ecRefPattern.exec(text)) !== null) {
-    const [fullMatch, _typePrefix, num, year] = match;
+    const [fullMatch, , num, year] = match;
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex > match!.index
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex > match!.index,
     );
     if (alreadyCovered) continue;
 
@@ -363,8 +387,8 @@ export function detectReferences(text: string): RawReference[] {
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex > match!.index
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex > match!.index,
     );
     if (alreadyCovered) continue;
 
@@ -385,8 +409,8 @@ export function detectReferences(text: string): RawReference[] {
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex > match!.index
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex > match!.index,
     );
     if (alreadyCovered) continue;
 
@@ -407,8 +431,8 @@ export function detectReferences(text: string): RawReference[] {
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex > match!.index
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex > match!.index,
     );
     if (alreadyCovered) continue;
 
@@ -429,8 +453,8 @@ export function detectReferences(text: string): RawReference[] {
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex > match!.index
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex > match!.index,
     );
     if (alreadyCovered) continue;
 
@@ -451,8 +475,8 @@ export function detectReferences(text: string): RawReference[] {
     const docId = lookupDocId(year, num);
     if (!docId) continue;
 
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex > match!.index
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex > match!.index,
     );
     if (alreadyCovered) continue;
 
@@ -468,15 +492,15 @@ export function detectReferences(text: string): RawReference[] {
 
   // Pattern 5: regulation/directive name keywords (e.g., "Asylum Procedure Regulation")
   const kwEntries = REGULATION_KEYWORDS.flatMap(([id, keywords]) =>
-    keywords.map(kw => ({ id, kw, escaped: kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }))
+    keywords.map((kw) => ({ id, kw, escaped: kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') })),
   ).sort((a, b) => b.kw.length - a.kw.length);
-  const namePattern = new RegExp(kwEntries.map(e => e.escaped).join('|'), 'gi');
+  const namePattern = new RegExp(kwEntries.map((e) => e.escaped).join('|'), 'gi');
   while ((match = namePattern.exec(text)) !== null) {
     const matchedLower = match[0].toLowerCase();
-    const entry = kwEntries.find(e => e.kw.toLowerCase() === matchedLower);
+    const entry = kwEntries.find((e) => e.kw.toLowerCase() === matchedLower);
     if (!entry) continue;
-    const alreadyCovered = results.some(r =>
-      r.startIndex <= match!.index && r.endIndex >= match!.index + match![0].length
+    const alreadyCovered = results.some(
+      (r) => r.startIndex <= match!.index && r.endIndex >= match!.index + match![0].length,
     );
     if (alreadyCovered) continue;
     results.push({
@@ -495,7 +519,10 @@ export function detectReferences(text: string): RawReference[] {
 
 /** Sort by start then longest span first, then filter to non-overlapping intervals */
 function deduplicate(refs: RawReference[]): RawReference[] {
-  refs.sort((a, b) => a.startIndex - b.startIndex || (b.endIndex - b.startIndex) - (a.endIndex - a.startIndex));
+  refs.sort(
+    (a, b) =>
+      a.startIndex - b.startIndex || b.endIndex - b.startIndex - (a.endIndex - a.startIndex),
+  );
   const result: RawReference[] = [];
   let lastEnd = -1;
   for (const r of refs) {
@@ -507,10 +534,7 @@ function deduplicate(refs: RawReference[]): RawReference[] {
   return result;
 }
 
-export function createReference(
-  raw: RawReference,
-  defaultDocId: string
-): Reference {
+export function createReference(raw: RawReference, defaultDocId: string): Reference {
   return {
     documentId: raw.documentId ?? defaultDocId,
     articleNumber: raw.articleNumber,

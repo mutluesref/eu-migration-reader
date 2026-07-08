@@ -2,8 +2,8 @@ import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
 import { useStore } from '../store';
 
 export function useScrollProgress(scrollRef: RefObject<HTMLDivElement | null>) {
-  const currentDocId = useStore(s => s.currentDocId);
-  const currentArticleNumber = useStore(s => s.currentArticleNumber);
+  const currentDocId = useStore((s) => s.currentDocId);
+  const currentArticleNumber = useStore((s) => s.currentArticleNumber);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const ignoreScrollRef = useRef(false);

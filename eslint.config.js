@@ -1,7 +1,11 @@
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
-export default [
+export default tseslint.config(
   { ignores: ['dist'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     files: ['src/**/*.{ts,tsx}'],
     plugins: {
@@ -9,6 +13,8 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
-];
+);

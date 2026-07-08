@@ -37,7 +37,7 @@ function ShortcutsHelp({ show, onClose }: Props) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return;
       const focusable = container.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       if (focusable.length === 0) return;
       const first = focusable[0];
@@ -58,10 +58,7 @@ function ShortcutsHelp({ show, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-      <div
-        className="absolute inset-0 bg-surface-900/50 backdrop-blur-md"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-surface-900/50 backdrop-blur-md" onClick={onClose} />
       <div
         ref={dialogRef}
         tabIndex={-1}
@@ -76,13 +73,14 @@ function ShortcutsHelp({ show, onClose }: Props) {
               <h3 className="text-lg font-bold text-surface-900 dark:text-surface-50">
                 Keyboard Shortcuts
               </h3>
-              <button
-                onClick={onClose}
-                className="btn-icon"
-                title="Close"
-              >
+              <button onClick={onClose} className="btn-icon" title="Close">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>

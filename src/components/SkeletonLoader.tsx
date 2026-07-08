@@ -5,12 +5,7 @@ interface Props {
 }
 
 function SkeletonPulse({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <div
-      className={`animate-pulse rounded bg-slate-200 ${className ?? ''}`}
-      style={style}
-    />
-  );
+  return <div className={`animate-pulse rounded bg-slate-200 ${className ?? ''}`} style={style} />;
 }
 
 function ArticleSkeleton() {
@@ -55,10 +50,7 @@ function SidebarSkeleton() {
       {Array.from({ length: 12 }).map((_, i) => (
         <div key={i} className="flex items-center gap-2 px-3 py-2">
           <SkeletonPulse className="h-3 w-3 rounded-full flex-shrink-0" />
-          <SkeletonPulse
-            className="h-3 rounded"
-            style={{ width: `${60 + (i % 3) * 15}%` }}
-          />
+          <SkeletonPulse className="h-3 rounded" style={{ width: `${60 + (i % 3) * 15}%` }} />
         </div>
       ))}
     </div>

@@ -102,7 +102,7 @@ export const useStore = create<AppState>()(
           const newRecent = [
             { docId, articleNumber, timestamp: Date.now() },
             ...state.recentArticles.filter(
-              (r) => !(r.docId === docId && r.articleNumber === articleNumber)
+              (r) => !(r.docId === docId && r.articleNumber === articleNumber),
             ),
           ].slice(0, 20);
           return {
@@ -128,10 +128,7 @@ export const useStore = create<AppState>()(
           const trimmed = state.history.slice(0, state.historyIndex + 1);
           return {
             currentArticleNumber: prev,
-            history: [
-              ...trimmed,
-              { documentId: state.currentDocId, articleNumber: prev },
-            ],
+            history: [...trimmed, { documentId: state.currentDocId, articleNumber: prev }],
             historyIndex: trimmed.length,
           };
         }),
@@ -145,10 +142,7 @@ export const useStore = create<AppState>()(
           const trimmed = state.history.slice(0, state.historyIndex + 1);
           return {
             currentArticleNumber: next,
-            history: [
-              ...trimmed,
-              { documentId: state.currentDocId, articleNumber: next },
-            ],
+            history: [...trimmed, { documentId: state.currentDocId, articleNumber: next }],
             historyIndex: trimmed.length,
           };
         }),
@@ -167,8 +161,7 @@ export const useStore = create<AppState>()(
 
       setSidebarWidth: (width) => set({ sidebarWidth: width }),
 
-      toggleInspector: () =>
-        set((state) => ({ showInspector: !state.showInspector })),
+      toggleInspector: () => set((state) => ({ showInspector: !state.showInspector })),
 
       setShowInspector: (show) => set({ showInspector: show }),
 
@@ -179,21 +172,18 @@ export const useStore = create<AppState>()(
       addBookmark: (docId, articleNumber, label) =>
         set((state) => {
           const exists = state.bookmarks.some(
-            (b) => b.docId === docId && b.articleNumber === articleNumber
+            (b) => b.docId === docId && b.articleNumber === articleNumber,
           );
           if (exists) return {};
           return {
-            bookmarks: [
-              { docId, articleNumber, label, timestamp: Date.now() },
-              ...state.bookmarks,
-            ],
+            bookmarks: [{ docId, articleNumber, label, timestamp: Date.now() }, ...state.bookmarks],
           };
         }),
 
       removeBookmark: (docId, articleNumber) =>
         set((state) => ({
           bookmarks: state.bookmarks.filter(
-            (b) => !(b.docId === docId && b.articleNumber === articleNumber)
+            (b) => !(b.docId === docId && b.articleNumber === articleNumber),
           ),
         })),
 
@@ -202,7 +192,7 @@ export const useStore = create<AppState>()(
           recentArticles: [
             { docId, articleNumber, timestamp: Date.now() },
             ...state.recentArticles.filter(
-              (r) => !(r.docId === docId && r.articleNumber === articleNumber)
+              (r) => !(r.docId === docId && r.articleNumber === articleNumber),
             ),
           ].slice(0, 20),
         })),
@@ -214,10 +204,11 @@ export const useStore = create<AppState>()(
 
       setCompareRef: (ref) => set({ compareRef: ref, showCompare: ref !== null }),
 
-      setShowCompare: (show) => set((state) => ({
-        showCompare: show,
-        compareRef: show ? state.compareRef : null,
-      })),
+      setShowCompare: (show) =>
+        set((state) => ({
+          showCompare: show,
+          compareRef: show ? state.compareRef : null,
+        })),
 
       setAnnotation: (docId, articleNumber, text) =>
         set((state) => ({
@@ -229,7 +220,10 @@ export const useStore = create<AppState>()(
 
       removeAnnotation: (docId, articleNumber) =>
         set((state) => {
-          const { [`${docId}:${articleNumber}`]: _, ...rest } = state.annotations;
+          const key = `${docId}:${articleNumber}`;
+          if (!state.annotations[key]) return state;
+          const rest = { ...state.annotations };
+          delete rest[key];
           return { annotations: rest };
         }),
 
@@ -247,6 +241,6 @@ export const useStore = create<AppState>()(
         sidebarWidth: state.sidebarWidth,
         annotations: state.annotations,
       }),
-    }
-  )
+    },
+  ),
 );
