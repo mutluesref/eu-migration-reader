@@ -231,6 +231,24 @@ describe('referenceDetection', () => {
 
       expect(refs.find((ref) => ref.articleNumber === '7c')?.documentId).toBe('ext:32019R0816');
     });
+
+    it('resolves APR Article 59 safe third country serious harm reference to QR Article 15', () => {
+      const refs = detectReferences(
+        'non-nationals face no real risk of serious harm as defined in Article 15 of Regulation (EU) 2024/1347;\n\n(c) non-nationals are protected against refoulement in accordance with the Geneva Convention.',
+      );
+
+      expect(refs.find((ref) => ref.articleNumber === '15')?.documentId).toBe('qr');
+    });
+
+    it('resolves Schengen evaluation article references in AMMR Article 10', () => {
+      const refs = detectReferences(
+        'the relevant recommendations provided for in Article 20 of Regulation (EU) 2022/922, Article 15 of Regulation (EU) 2021/2303 and Article 32(7) of Regulation (EU) 2019/1896;',
+      );
+
+      expect(refs.find((ref) => ref.articleNumber === '20')?.documentId).toBe('ext:32022R0922');
+      expect(refs.find((ref) => ref.articleNumber === '15')?.documentId).toBe('ext:32021R2303');
+      expect(refs.find((ref) => ref.articleNumber === '32')?.documentId).toBe('ext:32019R1896');
+    });
   });
 
   describe('createReference', () => {

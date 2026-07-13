@@ -263,7 +263,7 @@ function findDocBySurroundingText(
 }
 
 function isExcluded(text: string, _matchStart: number, matchEnd: number): boolean {
-  const after = text.substring(matchEnd, matchEnd + 200);
+  const after = text.substring(matchEnd, matchEnd + 200).split(/\n\n|;\n\n|\.\n\n/, 1)[0];
   for (const term of EXCLUDED_TERMS) {
     if (after.includes(term)) return true;
   }
