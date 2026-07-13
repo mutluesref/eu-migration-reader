@@ -46,11 +46,19 @@ export function useDocumentLoader() {
       }
     });
 
-    loadDocument(currentDocId).then(() => {
-      if (cancelled) return;
-      refreshDocuments();
-      setLoading(false);
-    });
+    loadDocument(currentDocId)
+      .then(() => {
+        if (cancelled) return;
+        refreshDocuments();
+      })
+      .catch((error: unknown) => {
+        console.error(`Failed to load document "${currentDocId}"`, error);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
 
     return () => {
       cancelled = true;

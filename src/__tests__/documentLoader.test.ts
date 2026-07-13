@@ -10,6 +10,7 @@ import {
   isDocumentLoaded,
   loadAllDocuments,
   loadDocument,
+  registerDocument,
 } from '../services/documentLoader';
 
 describe('documentLoader', () => {
@@ -74,5 +75,13 @@ describe('documentLoader', () => {
   it('loads all documents asynchronously', async () => {
     const docs = await loadAllDocuments();
     expect(docs.length).toBe(9);
+  });
+
+  it('rejects registering document data under the wrong id', async () => {
+    const doc = await loadDocument('ammr');
+
+    expect(() => registerDocument('apr', doc!)).toThrow(
+      'Cannot register document "ammr" as "apr"',
+    );
   });
 });

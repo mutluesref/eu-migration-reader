@@ -109,11 +109,15 @@ export default function App() {
         setSearchLoading(true);
       }
     });
-    ensureAllDocuments().finally(() => {
-      if (!cancelled) {
-        setSearchLoading(false);
-      }
-    });
+    ensureAllDocuments()
+      .catch((error: unknown) => {
+        console.error('Failed to load documents for search', error);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setSearchLoading(false);
+        }
+      });
     return () => {
       cancelled = true;
     };
