@@ -5,6 +5,7 @@ export {
   getExternalCelex,
   getExternalName,
   getEurlexUrl,
-} from '../../utils/referenceDetection';
+} from './referenceDetection';
 
-export type { RawReference, Reference } from './types';
+export type { RawReference } from './referenceDetection';
+export type { Reference } from '../../types';

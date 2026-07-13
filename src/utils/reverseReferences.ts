@@ -1,5 +1,5 @@
 import type { DocumentData, Reference } from '../types';
-import { detectReferences, createReference } from './referenceDetection';
+import { detectReferences, createReference } from '../services/references';
 
 /**
  * A reverse reference: which article references a given target article.

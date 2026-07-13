@@ -1,31 +1,22 @@
 import type { DocumentData, DocumentIndex } from '../types';
 import indexData from '../data/index.json';
-import ammrData from '../data/ammr.json';
-import aprData from '../data/apr.json';
-import rbprData from '../data/rbpr.json';
-import cfmrData from '../data/cfmr.json';
-import eurodacData from '../data/eurodac.json';
-import srData from '../data/sr.json';
-import qrData from '../data/qr.json';
-import rcdData from '../data/rcd.json';
-import urfaData from '../data/urfa.json';
 
 const documentIndex = indexData as DocumentIndex[];
 
-const eagerDocuments: Record<string, DocumentData> = {
-  ammr: ammrData as DocumentData,
-  apr: aprData as DocumentData,
-  rbpr: rbprData as DocumentData,
-  cfmr: cfmrData as DocumentData,
-  eurodac: eurodacData as DocumentData,
-  sr: srData as DocumentData,
-  qr: qrData as DocumentData,
-  rcd: rcdData as DocumentData,
-  urfa: urfaData as DocumentData,
+const documentLoaders: Record<string, () => Promise<{ default: DocumentData }>> = {
+  ammr: () => import('../data/ammr.json'),
+  apr: () => import('../data/apr.json'),
+  rbpr: () => import('../data/rbpr.json'),
+  cfmr: () => import('../data/cfmr.json'),
+  eurodac: () => import('../data/eurodac.json'),
+  sr: () => import('../data/sr.json'),
+  qr: () => import('../data/qr.json'),
+  rcd: () => import('../data/rcd.json'),
+  urfa: () => import('../data/urfa.json'),
 };
 
 const loadedDocuments = new Map<string, DocumentData>();
-let allLoaded = false;
+const pendingDocuments = new Map<string, Promise<DocumentData>>();
 
 export function getDocumentIndex(): DocumentIndex[] {
   return documentIndex;
@@ -47,23 +38,52 @@ export function getRegulationNumber(id: string): string {
 }
 
 export function getDocument(id: string): DocumentData | undefined {
-  if (eagerDocuments[id]) {
-    loadedDocuments.set(id, eagerDocuments[id]);
-    return eagerDocuments[id];
-  }
   return loadedDocuments.get(id);
 }
 
+export async function loadDocument(id: string): Promise<DocumentData | undefined> {
+  const loaded = loadedDocuments.get(id);
+  if (loaded) return loaded;
+
+  const loader = documentLoaders[id];
+  if (!loader) return undefined;
+
+  const pending = pendingDocuments.get(id);
+  if (pending) return pending;
+
+  const promise = loader().then((module) => {
+    const document = module.default as DocumentData;
+    loadedDocuments.set(id, document);
+    pendingDocuments.delete(id);
+    return document;
+  });
+
+  pendingDocuments.set(id, promise);
+  return promise;
+}
+
+export async function loadDocuments(ids: string[]): Promise<DocumentData[]> {
+  const docs = await Promise.all(ids.map((id) => loadDocument(id)));
+  return docs.filter((doc): doc is DocumentData => Boolean(doc));
+}
+
+export async function loadAllDocuments(): Promise<DocumentData[]> {
+  return loadDocuments(getDocumentIds());
+}
+
 export function getAllDocuments(): DocumentData[] {
-  if (!allLoaded) {
-    for (const [id, data] of Object.entries(eagerDocuments)) {
-      if (!loadedDocuments.has(id)) {
-        loadedDocuments.set(id, data);
-      }
-    }
-    allLoaded = true;
+  return getLoadedDocuments();
+}
+
+export function areAllDocumentsLoaded(): boolean {
+  return getDocumentIds().every((id) => loadedDocuments.has(id));
+}
+
+export function clearLoadedDocumentsForTests(): void {
+  if (import.meta.env.MODE === 'test') {
+    loadedDocuments.clear();
+    pendingDocuments.clear();
   }
-  return Array.from(loadedDocuments.values());
 }
 
 export function getLoadedDocuments(): DocumentData[] {
@@ -78,8 +98,8 @@ export function isDocumentLoaded(id: string): boolean {
   return loadedDocuments.has(id);
 }
 
-export function preloadAllDocuments(): void {
-  getAllDocuments();
+export async function preloadAllDocuments(): Promise<DocumentData[]> {
+  return loadAllDocuments();
 }
 
 export function getDocumentIds(): string[] {

@@ -20,8 +20,12 @@ export const EXTERNAL_CELEX: Record<string, string> = {
   '32018R1725': 'EU Institutions Data Protection',
   '32018R1240': 'ETIAS Regulation',
   '32019R0817': 'Interoperability Regulation',
+  '32019R0818': 'Interoperability Regulation (Police and Judicial Cooperation)',
   '32019R1896': 'Frontex Regulation',
   '32017R2226': 'Entry/Exit System Regulation',
+  '32018R1861': 'SIS Border Checks Regulation',
+  '32018R1862': 'SIS Police Cooperation Regulation',
+  '32019R0816': 'ECRIS-TCN Regulation',
   '32018R1806': 'Visa Requirements Regulation',
   '32008L0115': 'Return Directive',
   '32001L0055': 'Temporary Protection Directive',
@@ -41,11 +45,15 @@ export const EXTERNAL_CELEX: Record<string, string> = {
   '32016L0680': 'Law Enforcement Data Protection Directive',
   '32017L0541': 'Terrorism Directive',
   '32002L0584': 'European Arrest Warrant Framework Decision',
-  '32022L0382': 'Temporary Protection Council Decision',
-  '32018L1046': 'Financial Regulation',
-  '32003R0343': 'Dublin III Regulation',
+  '32022D0382': 'Temporary Protection Council Implementing Decision',
+  '32003R0343': 'Dublin II Regulation',
   '32013R0604': 'Dublin III Regulation',
   '32013R0603': 'Eurodac Regulation (old)',
+  '32011R0182': 'Comitology Regulation',
+  '32022R0922': 'Schengen Evaluation and Monitoring Mechanism Regulation',
+  '32011L0095': 'Qualification Directive',
+  '32013L0032': 'Asylum Procedures Directive',
+  '32013L0033': 'Reception Conditions Directive (old)',
 };
 
 export const REGULATION_KEYWORDS: [string, string[]][] = [
@@ -74,11 +82,14 @@ export const REGULATION_KEYWORDS: [string, string[]][] = [
   ['ext:32018R1725', ['EU Institutions Data Protection Regulation']],
   ['ext:32018R1240', ['ETIAS Regulation']],
   ['ext:32019R0817', ['Interoperability Regulation']],
+  ['ext:32019R0818', ['Interoperability Regulation (Police and Judicial Cooperation)']],
   ['ext:32019R1896', ['Frontex Regulation', 'European Border and Coast Guard Regulation']],
   ['ext:32017R2226', ['Entry/Exit System Regulation', 'EES Regulation']],
+  ['ext:32019R0816', ['ECRIS-TCN Regulation']],
   ['ext:32018R1806', ['Visa Requirements Regulation']],
   ['ext:32008L0115', ['Return Directive']],
   ['ext:32001L0055', ['Temporary Protection Directive']],
+  ['ext:32018R1046', ['Financial Regulation']],
 ];
 
 export const EXCLUDED_CELEX = [

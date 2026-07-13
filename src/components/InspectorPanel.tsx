@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import type { DocumentData, Article } from '../types';
 import type { ReverseReference } from '../utils/reverseReferences';
-import { isExternalDoc } from '../utils/referenceDetection';
+import { isExternalDoc } from '../services/references';
 import ReferenceInspector from './ReferenceInspector';
 import ExternalReferencePanel from './ExternalReferencePanel';
 

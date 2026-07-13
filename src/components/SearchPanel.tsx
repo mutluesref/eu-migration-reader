@@ -6,6 +6,7 @@ import { DOC_BADGE_COLORS } from '../constants/docColors';
 
 interface Props {
   documents: DocumentData[];
+  loading: boolean;
   query: string;
   onQueryChange: (q: string) => void;
   onResultClick: (docId: string, articleNumber: string) => void;
@@ -36,6 +37,7 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
 
 export default function SearchPanel({
   documents,
+  loading,
   query,
   onQueryChange,
   onResultClick,
@@ -182,10 +184,17 @@ export default function SearchPanel({
           </div>
         )}
 
-        {results.length > 0 && (
+        {loading && (
+          <div className="mt-3 text-center py-3">
+            <p className="text-sm text-slate-400">Loading all documents...</p>
+          </div>
+        )}
+
+        {!loading && results.length > 0 && (
           <div className="mt-3 max-h-72 overflow-y-auto custom-scrollbar">
             <p className="text-xs text-slate-400 mb-2 font-medium">
-              {results.length} result{results.length !== 1 ? 's' : ''}
+              Showing {Math.min(results.length, 30)} of {results.length} result
+              {results.length !== 1 ? 's' : ''}
             </p>
             <div className="space-y-1">
               {results.slice(0, 30).map((r, i) => (
@@ -223,7 +232,7 @@ export default function SearchPanel({
           </div>
         )}
 
-        {query.trim().length >= 2 && results.length === 0 && (
+        {!loading && query.trim().length >= 2 && results.length === 0 && (
           <div className="mt-3 text-center py-6">
             <p className="text-sm text-slate-400">No results found</p>
           </div>

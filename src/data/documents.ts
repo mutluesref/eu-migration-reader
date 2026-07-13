@@ -4,9 +4,14 @@ export {
   getRegulationNumber,
   getDocument,
   getAllDocuments,
+  loadDocument,
+  loadDocuments,
+  loadAllDocuments,
   getDocumentIds as getAllDocumentIds,
   getLoadedDocuments,
   isDocumentLoaded,
+  areAllDocumentsLoaded,
+  clearLoadedDocumentsForTests,
 } from '../services/documentLoader';
 
 export { getArticle } from './articleUtils';

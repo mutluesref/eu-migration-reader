@@ -12,6 +12,7 @@ interface Props {
   showCompare: boolean;
   showScrollTop: boolean;
   articleScrollRef: { current: HTMLDivElement | null };
+  onLoadDocument: (docId: string) => Promise<DocumentData | undefined>;
   onReferenceClick: (docId: string, articleNumber: string) => void;
   onReferenceNavigate: (docId: string, articleNumber: string) => void;
   onScroll: UIEventHandler<HTMLDivElement>;
@@ -26,6 +27,7 @@ function ReaderPane({
   showCompare,
   showScrollTop,
   articleScrollRef,
+  onLoadDocument,
   onReferenceClick,
   onReferenceNavigate,
   onScroll,
@@ -44,6 +46,7 @@ function ReaderPane({
               document={currentDoc}
               articleNumber={currentArticleNumber}
               documents={documents}
+              onLoadDocument={onLoadDocument}
               onReferenceClick={onReferenceClick}
               onReferenceNavigate={onReferenceNavigate}
             />

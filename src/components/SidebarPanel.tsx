@@ -1,14 +1,16 @@
 import { memo, useRef, type MouseEvent } from 'react';
-import type { DocumentData } from '../types';
+import type { DocumentData, DocumentIndex } from '../types';
 import Sidebar from './Sidebar';
 
 interface Props {
   showSidebar: boolean;
   sidebarWidth: number;
   documents: DocumentData[];
+  documentIndex: DocumentIndex[];
   currentDocId: string;
   currentArticleNumber: string;
   onNavigate: (docId: string, articleNumber: string) => void;
+  onLoadDocument: (docId: string) => Promise<DocumentData | undefined>;
   onClose: () => void;
   onResize: (width: number) => void;
 }
@@ -17,9 +19,11 @@ function SidebarPanel({
   showSidebar,
   sidebarWidth,
   documents,
+  documentIndex,
   currentDocId,
   currentArticleNumber,
   onNavigate,
+  onLoadDocument,
   onClose,
   onResize,
 }: Props) {
@@ -37,9 +41,11 @@ function SidebarPanel({
         >
           <Sidebar
             documents={documents}
+            documentIndex={documentIndex}
             currentDocId={currentDocId}
             currentArticleNumber={currentArticleNumber}
             onNavigate={onNavigate}
+            onLoadDocument={onLoadDocument}
             onClose={onClose}
           />
         </div>

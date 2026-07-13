@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import {
+  clearLoadedDocumentsForTests,
   getAllDocuments,
   getDocument,
   getDocumentIndex,
@@ -7,15 +8,25 @@ import {
   getRegulationNumber,
   getAllDocumentIds,
   getArticle,
+  loadAllDocuments,
+  loadDocument,
 } from '../data/documents';
 
 describe('documents', () => {
-  it('returns all documents', () => {
-    const docs = getAllDocuments();
-    expect(docs.length).toBe(9);
+  beforeEach(() => {
+    clearLoadedDocumentsForTests();
   });
 
-  it('returns document by id', () => {
+  it('returns loaded documents synchronously', async () => {
+    const docs = getAllDocuments();
+    expect(docs.length).toBe(0);
+
+    await loadAllDocuments();
+    expect(getAllDocuments().length).toBe(9);
+  });
+
+  it('returns document by id after loading', async () => {
+    await loadDocument('ammr');
     const doc = getDocument('ammr');
     expect(doc).toBeDefined();
     expect(doc!.id).toBe('ammr');
@@ -51,14 +62,27 @@ describe('documents', () => {
     expect(ids).toContain('apr');
   });
 
-  it('returns article by doc id and article number', () => {
+  it('returns article by doc id and article number after loading', async () => {
+    await loadDocument('ammr');
     const result = getArticle('ammr', '1');
     expect(result).not.toBeNull();
     expect(result!.article.number).toBe(1);
   });
 
-  it('returns null for invalid article', () => {
+  it('returns null for invalid article', async () => {
+    await loadDocument('ammr');
     const result = getArticle('ammr', '999');
     expect(result).toBeNull();
+  });
+
+  it('does not contain standalone dash paragraphs from scraping artifacts', async () => {
+    const docs = await loadAllDocuments();
+    const offenders = docs.flatMap((doc) =>
+      doc.articles
+        .filter((article) => /(?:^|\n)\s*[—–-]\s*(?:\n|$)/.test(article.content))
+        .map((article) => `${doc.id}:${article.number}`),
+    );
+
+    expect(offenders).toEqual([]);
   });
 });

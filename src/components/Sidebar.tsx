@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { DocumentData } from '../types';
+import type { DocumentData, DocumentIndex } from '../types';
 import { getDocumentShortName, getRegulationNumber } from '../data/documents';
 import useBookmarks from '../hooks/useBookmarks';
 import { useAnnotations } from '../hooks/useAnnotations';
@@ -8,9 +8,11 @@ import { copyToClipboard } from '../utils/clipboard';
 
 interface Props {
   documents: DocumentData[];
+  documentIndex: DocumentIndex[];
   currentDocId: string;
   currentArticleNumber: string;
   onNavigate: (docId: string, articleNumber: string) => void;
+  onLoadDocument: (docId: string) => Promise<DocumentData | undefined>;
   onClose: () => void;
 }
 
@@ -34,11 +36,14 @@ const DOC_ICONS: Record<string, string> = {
 
 export default function Sidebar({
   documents,
+  documentIndex,
   currentDocId,
   currentArticleNumber,
   onNavigate,
+  onLoadDocument,
 }: Props) {
   const [expandedDocs, setExpandedDocs] = useState<Set<string>>(new Set([currentDocId]));
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const { bookmarks, removeBookmark } = useBookmarks();
@@ -62,6 +67,15 @@ export default function Sidebar({
     });
   };
 
+  const loadDoc = async (docId: string) => {
+    setLoadingDocId(docId);
+    try {
+      await onLoadDocument(docId);
+    } finally {
+      setLoadingDocId(null);
+    }
+  };
+
   const getDocName = (docId: string) => {
     const doc = documents.find((d) => d.id === docId);
     return doc?.shortName ?? docId;
@@ -81,31 +95,37 @@ export default function Sidebar({
           Documents
         </h2>
         <span className="text-[10px] text-surface-300 dark:text-surface-600 font-mono">
-          {documents.length}
+          {documentIndex.length}
         </span>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar py-2 px-2.5">
         {/* Documents list */}
-        {documents.map((doc) => {
-          const isExpanded = expandedDocs.has(doc.id);
-          const isActive = doc.id === currentDocId;
+        {documentIndex.map((entry) => {
+          const doc = documents.find((d) => d.id === entry.id);
+          const isExpanded = expandedDocs.has(entry.id);
+          const isActive = entry.id === currentDocId;
 
           return (
-            <div key={doc.id} className="mb-1">
+            <div key={entry.id} className="mb-1">
               <div
                 className={`sidebar-item flex items-center gap-2.5 ${isActive ? 'sidebar-item-active' : ''}`}
-                onClick={() => toggleDoc(doc.id)}
+                onClick={() => {
+                  toggleDoc(entry.id);
+                  if (!doc) {
+                    loadDoc(entry.id);
+                  }
+                }}
               >
                 <div
                   className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors ${isActive ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-sm' : 'bg-surface-100 dark:bg-surface-700 text-surface-500 dark:text-surface-400'}`}
                 >
-                  {DOC_ICONS[doc.id] || '?'}
+                  {DOC_ICONS[entry.id] || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[13px] font-medium truncate text-surface-700 dark:text-surface-300">
-                      {getDocumentShortName(doc.id)}
+                      {getDocumentShortName(entry.id)}
                     </span>
                   </div>
                   <span
@@ -113,10 +133,10 @@ export default function Sidebar({
                     title="Right-click to copy"
                     onContextMenu={(e) => {
                       e.preventDefault();
-                      copyRegNumber(doc.id, getRegulationNumber(doc.id));
+                      copyRegNumber(entry.id, getRegulationNumber(entry.id));
                     }}
                   >
-                    {getRegulationNumber(doc.id)}
+                    {getRegulationNumber(entry.id)}
                   </span>
                 </div>
                 <svg
@@ -132,7 +152,7 @@ export default function Sidebar({
                     d="M9 5l7 7-7 7"
                   />
                 </svg>
-                {copiedId === doc.id && (
+                {copiedId === entry.id && (
                   <span className="text-[10px] text-accent-emerald font-medium flex-shrink-0 animate-fade-in">
                     Copied!
                   </span>
@@ -141,20 +161,28 @@ export default function Sidebar({
 
               {isExpanded && (
                 <div className="ml-4 border-l border-surface-200 dark:border-surface-700 pl-3 mt-1 mb-2">
-                  {doc.recitals.length > 0 && (
-                    <div
-                      className={`article-list-item ${isActive && currentArticleNumber === 'recitals' ? 'article-list-item-active' : ''}`}
-                      onClick={() => onNavigate(doc.id, 'recitals')}
-                    >
-                      Recitals
+                  {!doc ? (
+                    <div className="article-list-item text-surface-400">
+                      {loadingDocId === entry.id ? 'Loading articles...' : 'Loading on demand...'}
                     </div>
-                  )}
-                  {renderArticleList(
-                    doc,
-                    isActive,
-                    currentArticleNumber,
-                    onNavigate,
-                    hasAnnotation,
+                  ) : (
+                    <>
+                      {doc.recitals.length > 0 && (
+                        <div
+                          className={`article-list-item ${isActive && currentArticleNumber === 'recitals' ? 'article-list-item-active' : ''}`}
+                          onClick={() => onNavigate(doc.id, 'recitals')}
+                        >
+                          Recitals
+                        </div>
+                      )}
+                      {renderArticleList(
+                        doc,
+                        isActive,
+                        currentArticleNumber,
+                        onNavigate,
+                        hasAnnotation,
+                      )}
+                    </>
                   )}
                 </div>
               )}

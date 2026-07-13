@@ -10,9 +10,11 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       textarea.style.opacity = '0';
       document.body.appendChild(textarea);
       textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      return true;
+      try {
+        return document.execCommand('copy');
+      } finally {
+        document.body.removeChild(textarea);
+      }
     } catch {
       return false;
     }

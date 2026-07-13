@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { getExternalCelex, getExternalName, getEurlexUrl } from '../utils/referenceDetection';
+import { getExternalCelex, getExternalName, getEurlexUrl } from '../services/references';
 
 interface Props {
   docId: string;

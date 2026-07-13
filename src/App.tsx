@@ -19,6 +19,7 @@ import Onboarding from './components/Onboarding';
 import ShortcutsHelp from './components/ShortcutsHelp';
 import Toast from './components/Toast';
 import SkeletonLoader from './components/SkeletonLoader';
+import { isExternalDoc } from './services/references';
 
 export default function App() {
   const currentDocId = useStore((s) => s.currentDocId);
@@ -60,7 +61,16 @@ export default function App() {
   } | null>(null);
   const articleScrollRef = useRef<HTMLDivElement>(null);
 
-  const { documents, loading, currentDoc, reverseIndex } = useDocumentLoader();
+  const {
+    documents,
+    documentIndex,
+    loading,
+    currentDoc,
+    reverseIndex,
+    ensureDocument,
+    ensureAllDocuments,
+  } = useDocumentLoader();
+  const [searchLoading, setSearchLoading] = useState(false);
   const { handlePrevArticle, handleNextArticle } = useArticleNavigation(documents);
   const { scrollProgress, showScrollTop, scrollToTop, handleScroll } =
     useScrollProgress(articleScrollRef);
@@ -91,35 +101,73 @@ export default function App() {
     document.documentElement.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
 
+  useEffect(() => {
+    if (!showSearch) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setSearchLoading(true);
+      }
+    });
+    ensureAllDocuments().finally(() => {
+      if (!cancelled) {
+        setSearchLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [showSearch, ensureAllDocuments]);
+
+  useEffect(() => {
+    if (!inspectedRef || isExternalDoc(inspectedRef.documentId)) return;
+    ensureDocument(inspectedRef.documentId);
+  }, [inspectedRef, ensureDocument]);
+
+  useEffect(() => {
+    if (!compareRef || isExternalDoc(compareRef.documentId)) return;
+    ensureDocument(compareRef.documentId);
+  }, [compareRef, ensureDocument]);
+
   const handleReferenceClick = useCallback(
-    (docId: string, articleNumber: string) => {
+    async (docId: string, articleNumber: string) => {
+      if (!isExternalDoc(docId)) {
+        await ensureDocument(docId);
+      }
       setInspectedRef({ documentId: docId, articleNumber });
       setShowInspector(true);
     },
-    [setInspectedRef, setShowInspector],
+    [ensureDocument, setInspectedRef, setShowInspector],
   );
 
   const handleCompare = useCallback(
-    (docId: string, articleNumber: string) => {
+    async (docId: string, articleNumber: string) => {
+      if (!isExternalDoc(docId)) {
+        await ensureDocument(docId);
+      }
       setCompareRef({ documentId: docId, articleNumber });
       setShowCompare(true);
     },
-    [setCompareRef, setShowCompare],
+    [ensureDocument, setCompareRef, setShowCompare],
   );
 
   const handleReferenceNavigate = useCallback(
-    (docId: string, articleNumber: string) => {
+    async (docId: string, articleNumber: string) => {
+      if (!isExternalDoc(docId)) {
+        await ensureDocument(docId);
+      }
       navigateTo(docId, articleNumber);
     },
-    [navigateTo],
+    [ensureDocument, navigateTo],
   );
 
   const handleSearchResultClick = useCallback(
-    (docId: string, articleNumber: string) => {
+    async (docId: string, articleNumber: string) => {
+      await ensureDocument(docId);
       setInspectedRef({ documentId: docId, articleNumber });
       setShowInspector(true);
     },
-    [setInspectedRef, setShowInspector],
+    [ensureDocument, setInspectedRef, setShowInspector],
   );
 
   const handleToggleBookmark = useCallback(() => {
@@ -197,6 +245,7 @@ export default function App() {
       {showSearch && (
         <SearchPanel
           documents={documents}
+          loading={searchLoading}
           query={searchQuery}
           onQueryChange={setSearchQuery}
           onResultClick={handleSearchResultClick}
@@ -209,9 +258,11 @@ export default function App() {
           showSidebar={showSidebar}
           sidebarWidth={sidebarWidth}
           documents={documents}
+          documentIndex={documentIndex}
           currentDocId={currentDocId}
           currentArticleNumber={currentArticleNumber}
-          onNavigate={navigateTo}
+          onNavigate={handleReferenceNavigate}
+          onLoadDocument={ensureDocument}
           onClose={() => setShowSidebar(false)}
           onResize={setSidebarWidth}
         />
@@ -225,6 +276,7 @@ export default function App() {
             showCompare={showCompare}
             showScrollTop={showScrollTop}
             articleScrollRef={articleScrollRef}
+            onLoadDocument={ensureDocument}
             onReferenceClick={handleReferenceClick}
             onReferenceNavigate={handleReferenceNavigate}
             onScroll={handleScroll}
@@ -235,6 +287,7 @@ export default function App() {
             compareRef={compareRef}
             showCompare={showCompare}
             documents={documents}
+            onLoadDocument={ensureDocument}
             onReferenceClick={handleReferenceClick}
             onReferenceNavigate={handleReferenceNavigate}
             onClose={() => {

@@ -8,6 +8,7 @@ interface Props {
   compareRef: { documentId: string; articleNumber: string } | null;
   showCompare: boolean;
   documents: DocumentData[];
+  onLoadDocument: (docId: string) => Promise<DocumentData | undefined>;
   onReferenceClick: (docId: string, articleNumber: string) => void;
   onReferenceNavigate: (docId: string, articleNumber: string) => void;
   onClose: () => void;
@@ -17,6 +18,7 @@ function ComparePane({
   compareRef,
   showCompare,
   documents,
+  onLoadDocument,
   onReferenceClick,
   onReferenceNavigate,
   onClose,
@@ -60,6 +62,7 @@ function ComparePane({
               document={compareDoc}
               articleNumber={compareRef.articleNumber}
               documents={documents}
+              onLoadDocument={onLoadDocument}
               onReferenceClick={onReferenceClick}
               onReferenceNavigate={onReferenceNavigate}
             />

@@ -221,7 +221,7 @@ export const useStore = create<AppState>()(
       removeAnnotation: (docId, articleNumber) =>
         set((state) => {
           const key = `${docId}:${articleNumber}`;
-          if (!state.annotations[key]) return state;
+          if (!state.annotations[key]) return {};
           const rest = { ...state.annotations };
           delete rest[key];
           return { annotations: rest };

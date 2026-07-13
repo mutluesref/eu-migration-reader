@@ -7,7 +7,8 @@ import {
   getExternalCelex,
   getExternalName,
   getEurlexUrl,
-} from '../utils/referenceDetection';
+} from '../services/references';
+import type { RawReference } from '../services/references';
 import { getDocumentShortName, getRegulationNumber } from '../data/documents';
 import { useStore } from '../store';
 import useBookmarks from '../hooks/useBookmarks';
@@ -23,11 +24,13 @@ interface Props {
   document: DocumentData;
   articleNumber: string;
   documents: DocumentData[];
+  onLoadDocument: (docId: string) => Promise<DocumentData | undefined>;
   onReferenceClick: (docId: string, articleNumber: string) => void;
   onReferenceNavigate: (docId: string, articleNumber: string) => void;
 }
 
 type Segment = { type: 'text'; text: string } | { type: 'ref'; text: string; ref: Reference };
+type ParagraphRef = RawReference & { localStartIndex: number; localEndIndex: number };
 
 function getIndentLevel(text: string, index?: number, paragraphs?: string[]): number {
   const trimmed = text.trimStart();
@@ -56,8 +59,11 @@ function getIndentLevel(text: string, index?: number, paragraphs?: string[]): nu
   return 0;
 }
 
-function parseParagraphForSegments(paragraphText: string, docId: string): Segment[] {
-  const rawRefs = detectReferences(paragraphText);
+function parseParagraphForSegments(
+  paragraphText: string,
+  docId: string,
+  rawRefs: ParagraphRef[],
+): Segment[] {
   if (rawRefs.length === 0) {
     return [{ type: 'text', text: paragraphText }];
   }
@@ -66,12 +72,15 @@ function parseParagraphForSegments(paragraphText: string, docId: string): Segmen
   let lastIdx = 0;
 
   for (const raw of rawRefs) {
-    if (raw.startIndex > lastIdx) {
-      segments.push({ type: 'text', text: paragraphText.substring(lastIdx, raw.startIndex) });
+    if (raw.localStartIndex > lastIdx) {
+      segments.push({
+        type: 'text',
+        text: paragraphText.substring(lastIdx, raw.localStartIndex),
+      });
     }
     const ref = createReference(raw, docId);
-    segments.push({ type: 'ref', text: raw.text, ref });
-    lastIdx = raw.endIndex;
+    segments.push({ type: 'ref', text: paragraphText.substring(raw.localStartIndex, raw.localEndIndex), ref });
+    lastIdx = raw.localEndIndex;
   }
 
   if (lastIdx < paragraphText.length) {
@@ -79,6 +88,34 @@ function parseParagraphForSegments(paragraphText: string, docId: string): Segmen
   }
 
   return segments;
+}
+
+function mapArticleReferencesToParagraphs(
+  bodyContent: string,
+  paragraphs: string[],
+): ParagraphRef[][] {
+  const paragraphRefs = paragraphs.map(() => [] as ParagraphRef[]);
+  const articleRefs = detectReferences(bodyContent);
+  let searchFrom = 0;
+
+  paragraphs.forEach((paragraph, index) => {
+    const paragraphStart = bodyContent.indexOf(paragraph, searchFrom);
+    if (paragraphStart === -1) return;
+    const paragraphEnd = paragraphStart + paragraph.length;
+    searchFrom = paragraphEnd;
+
+    for (const ref of articleRefs) {
+      if (ref.startIndex >= paragraphStart && ref.endIndex <= paragraphEnd) {
+        paragraphRefs[index].push({
+          ...ref,
+          localStartIndex: ref.startIndex - paragraphStart,
+          localEndIndex: ref.endIndex - paragraphStart,
+        });
+      }
+    }
+  });
+
+  return paragraphRefs;
 }
 
 function getRefShortName(docId: string): string {
@@ -94,6 +131,7 @@ export default function ArticleViewer({
   document: doc,
   articleNumber,
   documents: allDocs,
+  onLoadDocument,
   onReferenceClick,
   onReferenceNavigate,
 }: Props) {
@@ -140,11 +178,12 @@ export default function ArticleViewer({
 
   const paragraphSegments = useMemo(() => {
     if (!article) return [];
-    return paragraphs.map((p) => ({
+    const paragraphRefs = mapArticleReferencesToParagraphs(bodyContent, paragraphs);
+    return paragraphs.map((p, index) => ({
       text: p,
-      segments: parseParagraphForSegments(p, doc.id),
+      segments: parseParagraphForSegments(p, doc.id, paragraphRefs[index]),
     }));
-  }, [article, paragraphs, doc.id]);
+  }, [article, bodyContent, paragraphs, doc.id]);
 
   const indentLevels = useMemo(() => {
     if (!article) return [];
@@ -155,8 +194,9 @@ export default function ArticleViewer({
     (
       docId: string,
       articleNum: string,
+      docs: DocumentData[] = allDocs,
     ): { content: string; title: string; subject: string; docName: string } | null => {
-      const d = allDocs.find((x) => x.id === docId);
+      const d = docs.find((x) => x.id === docId);
       if (!d) return null;
       const a = d.articles.find((x) => String(x.number) === articleNum);
       if (!a) return null;
@@ -187,6 +227,7 @@ export default function ArticleViewer({
   const mouseOverRef = useRef(false);
   const mouseOverPopup = useRef(false);
   const currentRefEl = useRef<HTMLElement | null>(null);
+  const previewRequestRef = useRef(0);
 
   const isMouseNearPopup = useCallback((e: MouseEvent) => {
     if (!popupRef.current) return false;
@@ -227,13 +268,14 @@ export default function ArticleViewer({
   }, [isTouchDevice, popup, isMouseNearRef, isMouseNearPopup]);
 
   const handleMouseEnterRef = useCallback(
-    (ref: Reference, e: React.MouseEvent) => {
+    async (ref: Reference, e: React.MouseEvent) => {
       if (isTouchDevice) return;
       currentRefEl.current = e.target as HTMLElement;
       mouseOverRef.current = true;
+      const requestId = ++previewRequestRef.current;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       const rect = (e.target as HTMLElement).getBoundingClientRect();
-      const found = !isExternalDoc(ref.documentId)
+      let found = !isExternalDoc(ref.documentId)
         ? findArticleContent(ref.documentId, ref.articleNumber)
         : null;
       if (found) {
@@ -263,9 +305,33 @@ export default function ArticleViewer({
           refDocId: ref.documentId,
           refArticleNumber: ref.articleNumber,
         });
+
+        if (!celex) {
+          const loadedDoc = await onLoadDocument(ref.documentId);
+          if (requestId !== previewRequestRef.current) return;
+          if (!mouseOverRef.current && !mouseOverPopup.current) return;
+          found = loadedDoc
+            ? findArticleContent(ref.documentId, ref.articleNumber, [
+                ...allDocs.filter((d) => d.id !== loadedDoc.id),
+                loadedDoc,
+              ])
+            : null;
+          if (found) {
+            setPopup({
+              x: rect.left,
+              y: rect.bottom + 12,
+              content: found.content,
+              docName: found.docName,
+              articleTitle: found.title,
+              subject: found.subject,
+              refDocId: ref.documentId,
+              refArticleNumber: ref.articleNumber,
+            });
+          }
+        }
       }
     },
-    [findArticleContent, isTouchDevice],
+    [allDocs, findArticleContent, isTouchDevice, onLoadDocument],
   );
 
   const handleMouseLeaveRef = useCallback(() => {
@@ -557,6 +623,7 @@ export default function ArticleViewer({
           }}
           onClickInspect={handlePopupInspect}
           onClose={() => {
+            previewRequestRef.current += 1;
             setPopup(null);
             currentRefEl.current = null;
             mouseOverRef.current = false;

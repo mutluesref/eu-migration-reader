@@ -1,28 +1,42 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import {
+  clearLoadedDocumentsForTests,
   getDocumentIndex,
   getDocumentShortName,
   getRegulationNumber,
   getDocument,
   getAllDocuments,
   getDocumentIds,
+  isDocumentLoaded,
+  loadAllDocuments,
+  loadDocument,
 } from '../services/documentLoader';
 
 describe('documentLoader', () => {
+  beforeEach(() => {
+    clearLoadedDocumentsForTests();
+  });
+
   it('returns document index', () => {
     const index = getDocumentIndex();
     expect(index.length).toBe(9);
     expect(index[0].id).toBe('ammr');
   });
 
-  it('returns document by id', () => {
-    const doc = getDocument('ammr');
+  it('loads document by id on demand', async () => {
+    expect(isDocumentLoaded('ammr')).toBe(false);
+    expect(getDocument('ammr')).toBeUndefined();
+
+    const doc = await loadDocument('ammr');
+
     expect(doc).toBeDefined();
     expect(doc!.id).toBe('ammr');
+    expect(isDocumentLoaded('ammr')).toBe(true);
+    expect(getDocument('ammr')!.id).toBe('ammr');
   });
 
-  it('returns undefined for invalid id', () => {
-    const doc = getDocument('invalid');
+  it('returns undefined for invalid id', async () => {
+    const doc = await loadDocument('invalid');
     expect(doc).toBeUndefined();
   });
 
@@ -48,8 +62,17 @@ describe('documentLoader', () => {
     expect(ids).toContain('ammr');
   });
 
-  it('returns all documents', () => {
+  it('returns only loaded documents synchronously', async () => {
     const docs = getAllDocuments();
+    expect(docs.length).toBe(0);
+
+    await loadDocument('ammr');
+
+    expect(getAllDocuments().map((doc) => doc.id)).toEqual(['ammr']);
+  });
+
+  it('loads all documents asynchronously', async () => {
+    const docs = await loadAllDocuments();
     expect(docs.length).toBe(9);
   });
 });
